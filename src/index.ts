@@ -38,8 +38,6 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
           ? ""
           : `${relativeLocation.replace(".graphql", "")}/`;
 
-      console.log("SUBDIR", subdir);
-
       const name = field.name;
       const resolverContents = code`
             export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
