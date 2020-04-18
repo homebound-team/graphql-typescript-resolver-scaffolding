@@ -1,0 +1,57 @@
+directive @org(category: String) on FIELD_DEFINITION
+
+# An entity that will be a mapped typed
+type Author {
+  name: String!
+  summary: AuthorSummary!
+  popularity: Popularity!
+  working: Working
+  birthday: Date
+}
+
+# A DTO that is just some fields
+type AuthorSummary {
+  numberOfBooks: Int!
+  amountOfSales: Float
+}
+
+type Book {
+  name: String!
+}
+
+union SearchResult = Author | Book
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  authors(id: ID): [Author!]!
+  authorSummaries: [AuthorSummary!]!
+  search(query: String!): [SearchResult!]!
+}
+
+type Mutation {
+  saveAuthor(input: AuthorInput!): SaveAuthorResult! @org(category: "author")
+}
+
+type SaveAuthorResult {
+  author: Author!
+}
+
+input AuthorInput {
+  name: String
+}
+
+enum Popularity {
+  Low
+  High
+}
+
+enum Working {
+  YES
+  NO
+}
+
+scalar Date

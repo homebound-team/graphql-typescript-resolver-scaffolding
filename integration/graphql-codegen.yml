@@ -1,0 +1,13 @@
+overwrite: true
+schema: "./integration/schema.graphql"
+documents: null
+generates:
+  integration/graphql-types.ts:
+    config:
+      contextType: "./entities#Context"
+      mappers:
+        Author: "./entities#AuthorId"
+      enumValues:
+        Popularity: "./entities#Popularity"
+    plugins:
+      - ./build/index.js
