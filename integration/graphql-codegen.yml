@@ -1,13 +1,12 @@
 overwrite: true
-schema: "./integration/schema.graphql"
+schema: "./schema.graphql"
 documents: null
 generates:
-  integration/graphql-types.ts:
+  src/generated/graphql-types.ts:
     config:
       contextType: "./entities#Context"
       mappers:
-        Author: "./entities#AuthorId"
-      enumValues:
-        Popularity: "./entities#Popularity"
+        Foo: Bar
     plugins:
-      - ./build/index.js
+      - ../build/index.js
+      - "@homebound/graphql-typescript-simple-resolvers"
