@@ -2,6 +2,7 @@ import { GraphQLObjectType, GraphQLNonNull, StringValueNode } from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { promises as fs } from "fs";
+import { dirname } from "path";
 import { pascalCase } from "change-case";
 import PluginOutput = Types.PluginOutput;
 
@@ -24,16 +25,23 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
   const Context = imp(`Context@@src/context`);
   const run = imp(`run@@src/resolvers/testUtils`);
 
+  const cwd = await fs.realpath(".");
+
   return Promise.all(
     Object.values(mutation.getFields()).map(async field => {
-      const orgDirective = field.astNode?.directives?.find(d => d.name.value === "org");
-      if (orgDirective) {
-        const category = (orgDirective.arguments?.find(a => a.name.value === "category")?.value as
-          | StringValueNode
-          | undefined)?.value;
-        if (category) {
-          const name = field.name;
-          const resolverContents = code`
+      // Assume files are in `./schema/*.graphql` files.
+      const relativeLocation = field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
+
+      // relativeLocation == schema.graphql --> no sub dir
+      const subdir =
+        !relativeLocation || relativeLocation === "schema.graphql"
+          ? ""
+          : `${relativeLocation.replace(".graphql", "")}/`;
+
+      console.log("SUBDIR", subdir);
+
+      const name = field.name;
+      const resolverContents = code`
             export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
               async ${name}(root, args, ctx) {
                 return undefined!;
@@ -41,27 +49,25 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
             };
           `;
 
-          // Assume the input is non-null
-          const inputType = (field.args[0].type as GraphQLNonNull<any>).ofType as GraphQLObjectType;
-          const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
+      // Assume the input is non-null
+      const inputType = (field.args[0].type as GraphQLNonNull<any>).ofType as GraphQLObjectType;
+      const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
-          const resolverConst = imp(`${name}@@${baseDir}/${category}/${name}`);
-          const testContents = code`
-            describe("${name}", () => {
-            });
+      const resolverConst = imp(`${name}@@${baseDir}/${subdir}${name}`);
+      const testContents = code`
+        describe("${name}", () => {
+        });
 
-            async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
-              return await ${run}(ctx, async () => {
-                return ${resolverConst}.${name}({}, { input }, ctx, undefined!);
-              });
-            }
-          `;
-
-          await fs.mkdir(`${baseDir}/${category}`, { recursive: true });
-          await writeIfNew(`${baseDir}/${category}/${name}.ts`, resolverContents);
-          await writeIfNew(`${baseDir}/${category}/${name}.test.ts`, testContents);
+        async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
+          return await ${run}(ctx, async () => {
+            return ${resolverConst}.${name}({}, { input }, ctx, undefined!);
+          });
         }
-      }
+      `;
+
+      await fs.mkdir(`${baseDir}/${subdir}`, { recursive: true });
+      await writeIfNew(`${baseDir}/${subdir}${name}.ts`, resolverContents);
+      await writeIfNew(`${baseDir}/${subdir}${name}.test.ts`, testContents);
     }),
   );
 }
