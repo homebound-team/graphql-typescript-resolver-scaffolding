@@ -17,8 +17,9 @@
     "ts-poet": "^3.0.0"
   },
   "devDependencies": {
-    "@homebound/graphql-typescript-simple-resolvers": "1.17.0",
     "@graphql-codegen/cli": "^1.12.1",
+    "@homebound/graphql-typescript-simple-resolvers": "1.17.0",
+    "@types/jest": "^25.2.1",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-prettier": "^3.1.1",
     "husky": "^3.0.9",

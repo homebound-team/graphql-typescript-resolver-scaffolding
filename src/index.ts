@@ -1,4 +1,4 @@
-import { GraphQLObjectType, StringValueNode } from "graphql";
+import { GraphQLObjectType, GraphQLNonNull, StringValueNode } from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { promises as fs } from "fs";
@@ -41,14 +41,18 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
             };
           `;
 
-          const inputType = field.args[0];
+          // Assume the input is non-null
+          const inputType = (field.args[0].type as GraphQLNonNull<any>).ofType as GraphQLObjectType;
           const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
           const resolverConst = imp(`${name}@@${baseDir}/${category}/${name}`);
           const testContents = code`
+            describe("${name}", () => {
+            });
+
             async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
               return await ${run}(ctx, async () => {
-                return ${resolverConst}.${name}(p.idOrFail, { draftMode: true }, ctx, info);
+                return ${resolverConst}.${name}({}, { input }, ctx, undefined!);
               });
             }
           `;

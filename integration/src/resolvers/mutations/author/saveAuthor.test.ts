@@ -1,9 +1,12 @@
 import { Context } from "@src/context";
+import { AuthorInput } from "@src/generated/graphql-types";
 import { run } from "@src/resolvers/testUtils";
 import { saveAuthor } from "@src/resolvers/mutations/author/saveAuthor";
 
-async function runsaveAuthor(ctx: Context, input: Project) {
+describe("saveAuthor", () => {});
+
+async function runSaveAuthor(ctx: Context, input: AuthorInput) {
   return await run(ctx, async () => {
-    return saveAuthor.saveAuthor(p.idOrFail, { draftMode: true }, ctx, info);
+    return saveAuthor.saveAuthor({}, { input }, ctx, undefined!);
   });
 }

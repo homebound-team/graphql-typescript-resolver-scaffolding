@@ -6,8 +6,9 @@
     "strict": true,
     "esModuleInterop": false,
     "skipLibCheck": true,
-    "outDir": "build"
+    "outDir": "build",
+    "sourceMap": true
   },
   "includes": ["src"],
-  "exclude":["integration"]
+  "exclude": ["integration"]
 }

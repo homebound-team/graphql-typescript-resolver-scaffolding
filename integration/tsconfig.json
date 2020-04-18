@@ -10,7 +10,9 @@
     "baseUrl": ".",
     "paths": {
       "@src/*": ["src/*"]
-    }
+    },
+    "sourceMap": true,
+    "types": ["jest"]
   },
   "includes": ["src"],
   "exclude": ["integration"]
