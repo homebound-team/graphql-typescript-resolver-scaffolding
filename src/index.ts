@@ -1,4 +1,11 @@
-import { GraphQLObjectType, GraphQLNonNull, StringValueNode } from "graphql";
+import {
+  GraphQLObjectType,
+  GraphQLNonNull,
+  StringValueNode,
+  GraphQLField,
+  GraphQLInputType,
+  GraphQLInputObjectType,
+} from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { promises as fs } from "fs";
@@ -47,14 +54,18 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
             };
           `;
 
-      // Assume the input is non-null
-      const inputType = (field.args[0].type as GraphQLNonNull<any>).ofType as GraphQLObjectType;
+      const inputType = getInputType(field);
+      if (!inputType) {
+        return;
+      }
       const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
       const moduleName = `${subdir}${name}Resolver`;
       const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
       const testContents = code`
         describe("${name}", () => {
+          it("works", () => {
+          });
         });
 
         async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
@@ -69,6 +80,16 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       await writeIfNew(`${baseDir}/${moduleName}.test.ts`, testContents);
     }),
   );
+}
+
+/** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
+function getInputType(field: GraphQLField<any, any>): GraphQLInputObjectType | undefined {
+  if (field.args[0].type instanceof GraphQLNonNull) {
+    return (field.args[0].type.ofType as any) as GraphQLInputObjectType;
+  } else if (field.args[0].type instanceof GraphQLInputObjectType) {
+    return field.args[0].type;
+  }
+  return undefined;
 }
 
 async function writeIfNew(path: string, code: Code): Promise<void> {
