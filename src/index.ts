@@ -60,7 +60,7 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       }
       const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
-      const moduleName = `${subdir}${name}Resolver`;
+      const moduleName = `${subdir}${name}`;
       const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
       const testContents = code`
         describe("${name}", () => {
