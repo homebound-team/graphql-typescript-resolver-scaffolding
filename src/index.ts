@@ -51,7 +51,8 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       const inputType = (field.args[0].type as GraphQLNonNull<any>).ofType as GraphQLObjectType;
       const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
-      const resolverConst = imp(`${name}@@${baseDir}/${subdir}${name}`);
+      const moduleName = `${subdir}${name}Resolver`;
+      const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
       const testContents = code`
         describe("${name}", () => {
         });
@@ -64,8 +65,8 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       `;
 
       await fs.mkdir(`${baseDir}/${subdir}`, { recursive: true });
-      await writeIfNew(`${baseDir}/${subdir}${name}.ts`, resolverContents);
-      await writeIfNew(`${baseDir}/${subdir}${name}.test.ts`, testContents);
+      await writeIfNew(`${baseDir}/${moduleName}.ts`, resolverContents);
+      await writeIfNew(`${baseDir}/${moduleName}.test.ts`, testContents);
     }),
   );
 }
