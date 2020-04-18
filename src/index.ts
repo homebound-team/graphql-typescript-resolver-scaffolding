@@ -32,9 +32,9 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       // Assume files are in `./schema/*.graphql` files.
       const relativeLocation = field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
 
-      // relativeLocation == schema.graphql --> no sub dir
+      // relativeLocation == {schema,mutations}.graphql --> no sub dir
       const subdir =
-        !relativeLocation || relativeLocation === "schema.graphql"
+        !relativeLocation || relativeLocation === "schema.graphql" || relativeLocation === "mutations.graphql"
           ? ""
           : `${relativeLocation.replace(".graphql", "")}/`;
 
