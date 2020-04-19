@@ -1,18 +1,10 @@
-import {
-  GraphQLObjectType,
-  GraphQLNonNull,
-  StringValueNode,
-  GraphQLField,
-  GraphQLInputType,
-  GraphQLInputObjectType,
-} from "graphql";
+import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType, } from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { promises as fs } from "fs";
-import { dirname } from "path";
 import { pascalCase } from "change-case";
-import PluginOutput = Types.PluginOutput;
 import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
+import PluginOutput = Types.PluginOutput;
 
 const MutationResolvers = imp("MutationResolvers@@src/generated/graphql-types");
 
@@ -61,12 +53,12 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
 
     const name = field.name;
     const resolverContents = code`
-            export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
-              async ${name}(root, args, ctx) {
-                return undefined!;
-              }
-            };
-          `;
+      export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
+        async ${name}(root, args, ctx) {
+          return undefined!;
+        }
+      };
+    `;
 
     const inputType = getInputType(field);
     if (!inputType) {
@@ -77,17 +69,17 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     const moduleName = `${subdir}${name}Resolver`;
     const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
     const testContents = code`
-        describe("${name}", () => {
-          it("works", () => {
-          });
+      describe("${name}", () => {
+        it("works", () => {
         });
+      });
 
-        async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
-          return await ${run}(ctx, async () => {
-            return ${resolverConst}.${name}({}, { input }, ctx, undefined!);
-          });
-        }
-      `;
+      async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
+        return await ${run}(ctx, async () => {
+          return ${resolverConst}.${name}({}, { input }, ctx, undefined!);
+        });
+      }
+    `;
 
     await fs.mkdir(`${baseDir}/${subdir}`, { recursive: true });
     await writeIfNew(`${baseDir}/${moduleName}.ts`, resolverContents);
