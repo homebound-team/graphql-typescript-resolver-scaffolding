@@ -1,3 +1,4 @@
+import { dirname } from "path";
 import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
@@ -6,41 +7,84 @@ import { promises as fs } from "fs";
 import { pascalCase } from "change-case";
 import PluginOutput = Types.PluginOutput;
 
+const QueryResolvers = imp("QueryResolvers@@src/generated/graphql-types");
 const MutationResolvers = imp("MutationResolvers@@src/generated/graphql-types");
+const Context = imp(`Context@@src/context`);
+const run = imp(`run@@src/resolvers/testUtils`);
 
-const baseDir = "src/resolvers/mutations";
+const baseDir = "src/resolvers";
+const fileNamesConsideredTopLevel = ["schema.graphql", "mutations.graphql", "queries.graphql", "root.graphql"];
 
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
-  const mutationResolvers: SymbolSpec[] = [];
+  const querySymbols: SymbolSpec[] = [];
+  const mutationSymbols: SymbolSpec[] = [];
 
   const mutationType = schema.getType("Mutation");
   if (mutationType instanceof GraphQLObjectType) {
     const consts = await maybeGenerateMutationScaffolding(mutationType);
-    consts.forEach(c => mutationResolvers.push(c));
+    consts.forEach(c => mutationSymbols.push(c));
   }
 
-  await writeMutationsBarrelFile(mutationResolvers);
+  const queryType = schema.getType("Query");
+  if (queryType instanceof GraphQLObjectType) {
+    const consts = await generateQueryScaffolding(queryType);
+    consts.forEach(c => querySymbols.push(c));
+  }
+
+  await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations.ts", mutationSymbols);
+  await writeBarrelFile("queryResolvers", QueryResolvers, "queries.ts", querySymbols);
 
   // We don't output any content into the generated-types.ts file.
   return {} as PluginOutput;
 };
 
-async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<SymbolSpec[]> {
-  const Context = imp(`Context@@src/context`);
-  const run = imp(`run@@src/resolvers/testUtils`);
+/** Given the `Query` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
+async function generateQueryScaffolding(query: GraphQLObjectType): Promise<SymbolSpec[]> {
+  const cwd = await fs.realpath(".");
 
+  const promises = Object.values(query.getFields()).map(async field => {
+    const name = field.name;
+    const resolverContents = code`
+      export const ${name}: Pick<${QueryResolvers}, "${name}"> = {
+        async ${name}(root, args, ctx) {
+          return undefined!;
+        }
+      };
+    `;
+
+    const argsImp = field.args.length === 0 ? "{}" : imp(`Query${pascalCase(name)}Args@@src/generated/graphql-types`);
+
+    const maybeSubDir = subDirectory(cwd, field);
+    const modulePath = `${baseDir}/queries/${maybeSubDir}${name}Resolver`;
+    const resolverConst = imp(`${name}@@${modulePath}`);
+    const testContents = code`
+      describe("${name}", () => {
+        it("works", () => {
+        });
+      });
+
+      async function run${pascalCase(name)}(ctx: ${Context}, args: ${argsImp}) {
+        return await ${run}(ctx, async () => {
+          return ${resolverConst}.${name}({}, args, ctx, undefined!);
+        });
+      }
+    `;
+
+    await fs.mkdir(dirname(modulePath), { recursive: true });
+    await writeIfNew(`${modulePath}.ts`, resolverContents);
+    await writeIfNew(`${modulePath}.test.ts`, testContents);
+
+    return resolverConst;
+  });
+
+  return (await Promise.all(promises)).flat();
+}
+
+/** Given the `Mutation` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
+async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<SymbolSpec[]> {
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(mutation.getFields()).map(async field => {
-    // Assume files are in `./schema/*.graphql` files.
-    const relativeLocation = field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
-
-    // relativeLocation == {schema,mutations}.graphql --> no sub dir
-    const subdir =
-      !relativeLocation || relativeLocation === "schema.graphql" || relativeLocation === "mutations.graphql"
-        ? ""
-        : `${relativeLocation.replace(".graphql", "")}/`;
-
     const name = field.name;
     const resolverContents = code`
       export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
@@ -56,8 +100,9 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     }
     const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
-    const moduleName = `${subdir}${name}Resolver`;
-    const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
+    const maybeSubDir = subDirectory(cwd, field);
+    const modulePath = `${baseDir}/mutations/${maybeSubDir}${name}Resolver`;
+    const resolverConst = imp(`${name}@@${modulePath}`);
     const testContents = code`
       describe("${name}", () => {
         it("works", () => {
@@ -71,9 +116,9 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       }
     `;
 
-    await fs.mkdir(`${baseDir}/${subdir}`, { recursive: true });
-    await writeIfNew(`${baseDir}/${moduleName}.ts`, resolverContents);
-    await writeIfNew(`${baseDir}/${moduleName}.test.ts`, testContents);
+    await fs.mkdir(dirname(modulePath), { recursive: true });
+    await writeIfNew(`${modulePath}.ts`, resolverContents);
+    await writeIfNew(`${modulePath}.test.ts`, testContents);
 
     return resolverConst;
   });
@@ -81,17 +126,16 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
   return (await Promise.all(promises)).flat();
 }
 
-// Create a file with all of the imports
-async function writeMutationsBarrelFile(mutationResolvers: SymbolSpec[]) {
-  const mutations = code`
+/** Creates a barrel file that re-exports every symbol in `symbols`. */
+async function writeBarrelFile(constName: string, constType: SymbolSpec, filePath: string, symbols: SymbolSpec[]) {
+  const contents = code`
     // This file is auto-generated
     
-    export const mutationResolvers: ${MutationResolvers} = {
-      ${mutationResolvers.map(resolver => code`...${resolver},`)}
+    export const ${constName}: ${constType} = {
+      ${symbols.map(symbol => code`...${symbol},`)}
     }
   `;
-  const mutationsFile = `${baseDir}/mutations.ts`;
-  await fs.writeFile(mutationsFile, await mutations.toStringWithImports(mutationsFile));
+  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports(filePath));
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
@@ -102,6 +146,18 @@ function getInputType(field: GraphQLField<any, any>): GraphQLInputObjectType | u
     return field.args[0].type;
   }
   return undefined;
+}
+
+/** Finds the relative path within the `$projectDir/schema/` directory. */
+function relativeSourcePath(cwd: string, field: GraphQLField<any, any>): string | undefined {
+  //  Assume files are in `./schema/*.graphql` files.
+  return field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
+}
+
+function subDirectory(cwd: string, field: GraphQLField<any, any>): string | undefined {
+  const path = relativeSourcePath(cwd, field);
+  const shouldGoInTopLevel = path && fileNamesConsideredTopLevel.includes(path);
+  return !path || shouldGoInTopLevel ? "" : `${path.replace(".graphql", "")}/`;
 }
 
 async function writeIfNew(path: string, code: Code): Promise<void> {

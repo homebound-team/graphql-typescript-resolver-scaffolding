@@ -4,7 +4,7 @@ documents: null
 generates:
   src/generated/graphql-types.ts:
     config:
-      contextType: "./entities#Context"
+      contextType: "@src/context#Context"
       mappers:
         Foo: Bar
     plugins:

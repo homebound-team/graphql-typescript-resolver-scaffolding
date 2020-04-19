@@ -1,5 +1,5 @@
 
-import { Context } from "./entities";
+import { Context } from "@src/context";
 import { GraphQLResolveInfo } from "graphql";
 
 export interface Resolvers {
@@ -18,6 +18,7 @@ export interface MutationResolvers {
 
 export interface QueryResolvers {
   authors: Resolver<{}, QueryAuthorsArgs, Author[]>;
+  books: Resolver<{}, {}, Book[]>;
 }
 
 export interface SaveBookResultResolvers {

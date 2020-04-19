@@ -2,6 +2,10 @@ extend type Mutation {
   saveBook(input: BookInput!): SaveBookResult!
 }
 
+extend type Query {
+  books: [Book!]!
+}
+
 input BookInput {
   name: String
 }
