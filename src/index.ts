@@ -12,41 +12,55 @@ import { promises as fs } from "fs";
 import { dirname } from "path";
 import { pascalCase } from "change-case";
 import PluginOutput = Types.PluginOutput;
+import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
 
 const MutationResolvers = imp("MutationResolvers@@src/generated/graphql-types");
 
+const baseDir = "src/resolvers/mutations";
+
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const chunks: Code[] = [];
+  const mutationResolvers: SymbolSpec[] = [];
 
   const mutationType = schema.getType("Mutation");
   if (mutationType instanceof GraphQLObjectType) {
-    await maybeGenerateMutationScaffolding(mutationType);
+    const consts = await maybeGenerateMutationScaffolding(mutationType);
+    consts.forEach(c => mutationResolvers.push(c));
   }
+
+  // Create a file with all of hte imports
+  const mutations = code`
+    // This file is auto-generated
+    
+    export const mutationResolvers: ${MutationResolvers} = {
+      ${mutationResolvers.map(resolver => code`...${resolver},`)}
+    }
+  `;
+  const mutationsFile = `${baseDir}/mutations.ts`;
+  await fs.writeFile(mutationsFile, await mutations.toStringWithImports(mutationsFile));
 
   const content = await code`${chunks}`.toStringWithImports();
   return { content } as PluginOutput;
 };
 
-async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<void[]> {
-  const baseDir = "src/resolvers/mutations";
+async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<SymbolSpec[]> {
   const Context = imp(`Context@@src/context`);
   const run = imp(`run@@src/resolvers/testUtils`);
 
   const cwd = await fs.realpath(".");
 
-  return Promise.all(
-    Object.values(mutation.getFields()).map(async field => {
-      // Assume files are in `./schema/*.graphql` files.
-      const relativeLocation = field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
+  const promises = Object.values(mutation.getFields()).map(async field => {
+    // Assume files are in `./schema/*.graphql` files.
+    const relativeLocation = field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
 
-      // relativeLocation == {schema,mutations}.graphql --> no sub dir
-      const subdir =
-        !relativeLocation || relativeLocation === "schema.graphql" || relativeLocation === "mutations.graphql"
-          ? ""
-          : `${relativeLocation.replace(".graphql", "")}/`;
+    // relativeLocation == {schema,mutations}.graphql --> no sub dir
+    const subdir =
+      !relativeLocation || relativeLocation === "schema.graphql" || relativeLocation === "mutations.graphql"
+        ? ""
+        : `${relativeLocation.replace(".graphql", "")}/`;
 
-      const name = field.name;
-      const resolverContents = code`
+    const name = field.name;
+    const resolverContents = code`
             export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
               async ${name}(root, args, ctx) {
                 return undefined!;
@@ -54,15 +68,15 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
             };
           `;
 
-      const inputType = getInputType(field);
-      if (!inputType) {
-        return;
-      }
-      const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
+    const inputType = getInputType(field);
+    if (!inputType) {
+      return;
+    }
+    const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
 
-      const moduleName = `${subdir}${name}Resolver`;
-      const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
-      const testContents = code`
+    const moduleName = `${subdir}${name}Resolver`;
+    const resolverConst = imp(`${name}@@${baseDir}/${moduleName}`);
+    const testContents = code`
         describe("${name}", () => {
           it("works", () => {
           });
@@ -75,11 +89,14 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
         }
       `;
 
-      await fs.mkdir(`${baseDir}/${subdir}`, { recursive: true });
-      await writeIfNew(`${baseDir}/${moduleName}.ts`, resolverContents);
-      await writeIfNew(`${baseDir}/${moduleName}.test.ts`, testContents);
-    }),
-  );
+    await fs.mkdir(`${baseDir}/${subdir}`, { recursive: true });
+    await writeIfNew(`${baseDir}/${moduleName}.ts`, resolverContents);
+    await writeIfNew(`${baseDir}/${moduleName}.test.ts`, testContents);
+
+    return resolverConst;
+  });
+
+  return (await Promise.all(promises)).flat();
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
