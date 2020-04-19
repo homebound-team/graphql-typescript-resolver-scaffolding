@@ -1,9 +1,9 @@
 import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
 import { code, Code, imp } from "ts-poet";
+import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { promises as fs } from "fs";
 import { pascalCase } from "change-case";
-import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
 import PluginOutput = Types.PluginOutput;
 
 const MutationResolvers = imp("MutationResolvers@@src/generated/graphql-types");
@@ -19,16 +19,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
     consts.forEach(c => mutationResolvers.push(c));
   }
 
-  // Create a file with all of hte imports
-  const mutations = code`
-    // This file is auto-generated
-    
-    export const mutationResolvers: ${MutationResolvers} = {
-      ${mutationResolvers.map(resolver => code`...${resolver},`)}
-    }
-  `;
-  const mutationsFile = `${baseDir}/mutations.ts`;
-  await fs.writeFile(mutationsFile, await mutations.toStringWithImports(mutationsFile));
+  await writeMutationsBarrelFile(mutationResolvers);
 
   // We don't output any content into the generated-types.ts file.
   return {} as PluginOutput;
@@ -88,6 +79,19 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
   });
 
   return (await Promise.all(promises)).flat();
+}
+
+// Create a file with all of the imports
+async function writeMutationsBarrelFile(mutationResolvers: SymbolSpec[]) {
+  const mutations = code`
+    // This file is auto-generated
+    
+    export const mutationResolvers: ${MutationResolvers} = {
+      ${mutationResolvers.map(resolver => code`...${resolver},`)}
+    }
+  `;
+  const mutationsFile = `${baseDir}/mutations.ts`;
+  await fs.writeFile(mutationsFile, await mutations.toStringWithImports(mutationsFile));
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
