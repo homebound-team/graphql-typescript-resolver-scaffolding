@@ -1,4 +1,4 @@
-import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType, } from "graphql";
+import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { promises as fs } from "fs";
@@ -11,7 +11,6 @@ const MutationResolvers = imp("MutationResolvers@@src/generated/graphql-types");
 const baseDir = "src/resolvers/mutations";
 
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
-  const chunks: Code[] = [];
   const mutationResolvers: SymbolSpec[] = [];
 
   const mutationType = schema.getType("Mutation");
@@ -31,8 +30,8 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
   const mutationsFile = `${baseDir}/mutations.ts`;
   await fs.writeFile(mutationsFile, await mutations.toStringWithImports(mutationsFile));
 
-  const content = await code`${chunks}`.toStringWithImports();
-  return { content } as PluginOutput;
+  // We don't output any content into the generated-types.ts file.
+  return {} as PluginOutput;
 };
 
 async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<SymbolSpec[]> {
