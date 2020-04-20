@@ -4,7 +4,9 @@ import { run } from "@src/resolvers/testUtils";
 import { saveBook } from "@src/resolvers/mutations/books/saveBookResolver";
 
 describe("saveBook", () => {
-  it("works", () => {});
+  it("handles this business case", () => {
+    fail();
+  });
 });
 
 async function runSaveBook(ctx: Context, input: BookInput) {

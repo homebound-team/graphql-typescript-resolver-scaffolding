@@ -4,7 +4,9 @@ import { run } from "@src/resolvers/testUtils";
 import { authors } from "@src/resolvers/queries/authorsResolver";
 
 describe("authors", () => {
-  it("works", () => {});
+  it("handles this business case", () => {
+    fail();
+  });
 });
 
 async function runAuthors(ctx: Context, args: QueryAuthorsArgs) {

@@ -3,7 +3,9 @@ import { run } from "@src/resolvers/testUtils";
 import { books } from "@src/resolvers/queries/books/booksResolver";
 
 describe("books", () => {
-  it("works", () => {});
+  it("handles this business case", () => {
+    fail();
+  });
 });
 
 async function runBooks(ctx: Context, args: {}) {

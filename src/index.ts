@@ -47,7 +47,7 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Symbo
     const resolverContents = code`
       export const ${name}: Pick<${QueryResolvers}, "${name}"> = {
         async ${name}(root, args, ctx) {
-          return undefined!;
+          throw new Error("not implemented");
         }
       };
     `;
@@ -59,7 +59,8 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Symbo
     const resolverConst = imp(`${name}@@${modulePath}`);
     const testContents = code`
       describe("${name}", () => {
-        it("works", () => {
+        it("handles this business case", () => {
+          fail();
         });
       });
 
@@ -89,7 +90,7 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     const resolverContents = code`
       export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
         async ${name}(root, args, ctx) {
-          return undefined!;
+          throw new Error("not implemented");
         }
       };
     `;
@@ -105,7 +106,8 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     const resolverConst = imp(`${name}@@${modulePath}`);
     const testContents = code`
       describe("${name}", () => {
-        it("works", () => {
+        it("handles this business case", () => {
+          fail();
         });
       });
 

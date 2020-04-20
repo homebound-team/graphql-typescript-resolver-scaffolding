@@ -4,7 +4,9 @@ import { run } from "@src/resolvers/testUtils";
 import { saveAuthor } from "@src/resolvers/mutations/saveAuthorResolver";
 
 describe("saveAuthor", () => {
-  it("works", () => {});
+  it("handles this business case", () => {
+    fail();
+  });
 });
 
 async function runSaveAuthor(ctx: Context, input: AuthorInput) {
