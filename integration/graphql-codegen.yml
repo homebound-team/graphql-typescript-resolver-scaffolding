@@ -7,6 +7,7 @@ generates:
       contextType: "@src/context#Context"
       mappers:
         Foo: Bar
+        Author: "@src/context#Id"
     plugins:
       - ../build/index.js
       - "@homebound/graphql-typescript-simple-resolvers"

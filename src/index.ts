@@ -1,5 +1,13 @@
 import { dirname } from "path";
-import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
+import {
+  FieldDefinitionNode,
+  GraphQLField,
+  GraphQLInputObjectType,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  Location,
+  ObjectTypeDefinitionNode,
+} from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
 import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
@@ -15,21 +23,38 @@ const run = imp(`run@@src/resolvers/testUtils`);
 const baseDir = "src/resolvers";
 const fileNamesConsideredTopLevel = ["schema.graphql", "mutations.graphql", "queries.graphql", "root.graphql"];
 
+function isGraphQLObjectType(o: any): o is GraphQLObjectType {
+  return o instanceof GraphQLObjectType;
+}
+
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const querySymbols: SymbolSpec[] = [];
   const mutationSymbols: SymbolSpec[] = [];
+  const objectSymbols: SymbolSpec[] = [];
 
-  const mutationType = schema.getType("Mutation");
-  if (mutationType instanceof GraphQLObjectType) {
+  const mutationType = schema.getMutationType();
+  if (mutationType) {
     const consts = await maybeGenerateMutationScaffolding(mutationType);
     consts.forEach(c => mutationSymbols.push(c));
   }
 
-  const queryType = schema.getType("Query");
-  if (queryType instanceof GraphQLObjectType) {
+  const queryType = schema.getQueryType();
+  if (queryType) {
     const consts = await generateQueryScaffolding(queryType);
     consts.forEach(c => querySymbols.push(c));
   }
+
+  await Promise.all(
+    Object.values(schema.getTypeMap())
+      .filter(value => isGraphQLObjectType(value))
+      .filter(value => !value.name.startsWith("__"))
+      .filter(value => value !== queryType && value !== mutationType)
+      .filter(value => config.mappers[value.name] !== undefined)
+      .map(async o => {
+        const sym = await maybeGenerateObjectScaffolding(o as GraphQLObjectType);
+        objectSymbols.push(sym);
+      }),
+  );
 
   await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations.ts", mutationSymbols);
   await writeBarrelFile("queryResolvers", QueryResolvers, "queries.ts", querySymbols);
@@ -128,6 +153,36 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
   return (await Promise.all(promises)).flat();
 }
 
+/** Given the `Object` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
+async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promise<SymbolSpec> {
+  const cwd = await fs.realpath(".");
+
+  const name = object.name;
+  const resolverType = imp(`${object.name}Resolvers@@src/generated/graphql-types`);
+
+  const resolverContents = code`
+    export const ${name}: ${resolverType} = {
+    };
+  `;
+
+  const maybeSubDir = subDirectory(cwd, object);
+  const modulePath = `${baseDir}/objects/${maybeSubDir}${name}Resolver`;
+  const resolverConst = imp(`${name}@@${modulePath}`);
+  const testContents = code`
+    describe("${name}", () => {
+      it("handles this business case", () => {
+        fail();
+      });
+    });
+  `;
+
+  await fs.mkdir(dirname(modulePath), { recursive: true });
+  await writeIfNew(`${modulePath}.ts`, resolverContents);
+  await writeIfNew(`${modulePath}.test.ts`, testContents);
+
+  return resolverConst;
+}
+
 /** Creates a barrel file that re-exports every symbol in `symbols`. */
 async function writeBarrelFile(constName: string, constType: SymbolSpec, filePath: string, symbols: SymbolSpec[]) {
   const contents = code`
@@ -150,13 +205,26 @@ function getInputType(field: GraphQLField<any, any>): GraphQLInputObjectType | u
   return undefined;
 }
 
+type HasAst = GraphQLObjectType | GraphQLField<any, any>;
+
 /** Finds the relative path within the `$projectDir/schema/` directory. */
-function relativeSourcePath(cwd: string, field: GraphQLField<any, any>): string | undefined {
-  //  Assume files are in `./schema/*.graphql` files.
-  return field.astNode?.loc?.source.name?.replace(cwd, "")?.replace("/schema/", "");
+function relativeSourcePath(cwd: string, node: HasAst): string | undefined {
+  let source: string | undefined;
+  if (node instanceof GraphQLObjectType && Object.values(node.getFields()).length > 0) {
+    // There is a bug in graphql-codegen/graphql-toolkit where the top-level objects don't
+    // have source locations, but if we call .getFields() and look at the first field, it works.
+    source = Object.values(node.getFields())[0].astNode?.loc?.source.name;
+  } else if (!(node instanceof GraphQLObjectType)) {
+    source = node.astNode?.loc?.source.name;
+  }
+  if (source) {
+    // Assume files are in `./schema/*.graphql` files.
+    return source.replace(cwd, "")?.replace("/schema/", "");
+  }
+  return undefined;
 }
 
-function subDirectory(cwd: string, field: GraphQLField<any, any>): string | undefined {
+function subDirectory(cwd: string, field: HasAst): string | undefined {
   const path = relativeSourcePath(cwd, field);
   const shouldGoInTopLevel = path && fileNamesConsideredTopLevel.includes(path);
   return !path || shouldGoInTopLevel ? "" : `${path.replace(".graphql", "")}/`;
@@ -172,6 +240,7 @@ async function writeIfNew(path: string, code: Code): Promise<void> {
 /** The config values we read from the graphql-codegen.yml file. */
 export type Config = {
   contextType: string;
+  mappers: Record<string, string>;
 };
 
 /** Returns true if `p` is resolved, otherwise false if it is rejected. */

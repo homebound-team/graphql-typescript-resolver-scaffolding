@@ -1,12 +1,12 @@
 
-import { Context } from "@src/context";
+import { Context, Id } from "@src/context";
 import { GraphQLResolveInfo } from "graphql";
 
 export interface Resolvers {
   Mutation: MutationResolvers;
   Query: QueryResolvers;
+  Author: AuthorResolvers;
   SaveBookResult?: SaveBookResultResolvers;
-  Author?: AuthorResolvers;
   Book?: BookResolvers;
   SaveAuthorResult?: SaveAuthorResultResolvers;
 }
@@ -17,16 +17,16 @@ export interface MutationResolvers {
 }
 
 export interface QueryResolvers {
-  authors: Resolver<{}, QueryAuthorsArgs, Author[]>;
+  authors: Resolver<{}, QueryAuthorsArgs, Id[]>;
   books: Resolver<{}, {}, Book[]>;
 }
 
-export interface SaveBookResultResolvers {
-  author: Resolver<SaveBookResult, {}, Author>;
+export interface AuthorResolvers {
+  name: Resolver<Id, {}, string>;
 }
 
-export interface AuthorResolvers {
-  name: Resolver<Author, {}, string>;
+export interface SaveBookResultResolvers {
+  author: Resolver<SaveBookResult, {}, Id>;
 }
 
 export interface BookResolvers {
@@ -34,7 +34,7 @@ export interface BookResolvers {
 }
 
 export interface SaveAuthorResultResolvers {
-  author: Resolver<SaveAuthorResult, {}, Author>;
+  author: Resolver<SaveAuthorResult, {}, Id>;
 }
 
 type Resolver<R, A, T> = (root: R, args: A, ctx: Context, info: GraphQLResolveInfo) => T | Promise<T>;
@@ -49,11 +49,7 @@ export interface QueryAuthorsArgs {
   id: string | null | undefined;
 }
 export interface SaveBookResult {
-  author: Author;
-}
-
-export interface Author {
-  name: string;
+  author: Id;
 }
 
 export interface Book {
@@ -61,7 +57,7 @@ export interface Book {
 }
 
 export interface SaveAuthorResult {
-  author: Author;
+  author: Id;
 }
 
 export interface BookInput {
