@@ -9,8 +9,8 @@ describe("authors", () => {
   });
 });
 
-async function runAuthors(ctx: Context, args: QueryAuthorsArgs) {
+async function runAuthors(ctx: Context, argsFn: () => QueryAuthorsArgs) {
   return await run(ctx, async () => {
-    return authors.authors({}, args, ctx, undefined!);
+    return authors.authors({}, argsFn(), ctx, undefined!);
   });
 }

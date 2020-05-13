@@ -9,8 +9,8 @@ describe("saveBook", () => {
   });
 });
 
-async function runSaveBook(ctx: Context, input: BookInput) {
+async function runSaveBook(ctx: Context, inputFn: () => BookInput) {
   return await run(ctx, async () => {
-    return saveBook.saveBook({}, { input }, ctx, undefined!);
+    return saveBook.saveBook({}, { input: inputFn() }, ctx, undefined!);
   });
 }

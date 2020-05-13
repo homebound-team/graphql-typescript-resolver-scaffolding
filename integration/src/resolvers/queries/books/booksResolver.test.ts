@@ -8,8 +8,8 @@ describe("books", () => {
   });
 });
 
-async function runBooks(ctx: Context, args: {}) {
+async function runBooks(ctx: Context, argsFn: () => {}) {
   return await run(ctx, async () => {
-    return books.books({}, args, ctx, undefined!);
+    return books.books({}, argsFn(), ctx, undefined!);
   });
 }

@@ -89,9 +89,9 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Symbo
         });
       });
 
-      async function run${pascalCase(name)}(ctx: ${Context}, args: ${argsImp}) {
+      async function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
         return await ${run}(ctx, async () => {
-          return ${resolverConst}.${name}({}, args, ctx, undefined!);
+          return ${resolverConst}.${name}({}, argsFn(), ctx, undefined!);
         });
       }
     `;
@@ -136,9 +136,9 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
         });
       });
 
-      async function run${pascalCase(name)}(ctx: ${Context}, input: ${inputImp}) {
+      async function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
         return await ${run}(ctx, async () => {
-          return ${resolverConst}.${name}({}, { input }, ctx, undefined!);
+          return ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!);
         });
       }
     `;

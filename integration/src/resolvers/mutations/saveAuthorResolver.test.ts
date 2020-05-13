@@ -9,8 +9,8 @@ describe("saveAuthor", () => {
   });
 });
 
-async function runSaveAuthor(ctx: Context, input: AuthorInput) {
+async function runSaveAuthor(ctx: Context, inputFn: () => AuthorInput) {
   return await run(ctx, async () => {
-    return saveAuthor.saveAuthor({}, { input }, ctx, undefined!);
+    return saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!);
   });
 }
