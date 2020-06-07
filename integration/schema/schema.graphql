@@ -17,6 +17,7 @@ type Query {
 
 type Mutation {
   saveAuthor(input: AuthorInput!): SaveAuthorResult!
+  noInputMutation: Boolean
 }
 
 type SaveAuthorResult {

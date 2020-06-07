@@ -121,10 +121,9 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     `;
 
     const inputType = getInputType(field);
-    if (!inputType) {
-      return;
-    }
-    const inputImp = imp(`${inputType.name}@@src/generated/graphql-types`);
+
+    // if no inputType then make inputImp void
+    const inputImp = inputType ? imp(`${inputType.name}@@src/generated/graphql-types`) : "void";
 
     const maybeSubDir = subDirectory(cwd, field);
     const modulePath = `${baseDir}/mutations/${maybeSubDir}${name}Resolver`;
@@ -197,10 +196,12 @@ async function writeBarrelFile(constName: string, constType: SymbolSpec, filePat
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
 function getInputType(field: GraphQLField<any, any>): GraphQLInputObjectType | undefined {
-  if (field.args[0].type instanceof GraphQLNonNull) {
-    return (field.args[0].type.ofType as any) as GraphQLInputObjectType;
-  } else if (field.args[0].type instanceof GraphQLInputObjectType) {
-    return field.args[0].type;
+  if (field.args.length > 0) {
+    if (field.args[0].type instanceof GraphQLNonNull) {
+      return (field.args[0].type.ofType as any) as GraphQLInputObjectType;
+    } else if (field.args[0].type instanceof GraphQLInputObjectType) {
+      return field.args[0].type;
+    }
   }
   return undefined;
 }
