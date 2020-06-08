@@ -12,6 +12,7 @@ export interface Resolvers {
 }
 
 export interface MutationResolvers {
+  noInputMutation: Resolver<{}, {}, Boolean | null | undefined>;
   saveAuthor: Resolver<{}, MutationSaveAuthorArgs, SaveAuthorResult>;
   saveBook: Resolver<{}, MutationSaveBookArgs, SaveBookResult>;
 }
