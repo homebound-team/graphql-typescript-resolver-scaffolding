@@ -90,8 +90,10 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Symbo
     `;
 
     await fs.mkdir(dirname(modulePath), { recursive: true });
-    await writeIfNew(`${modulePath}.ts`, resolverContents);
-    await writeIfNew(`${modulePath}.test.ts`, testContents);
+    const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
+    if (newFile) {
+      await writeIfNew(`${modulePath}.test.ts`, testContents);
+    }
 
     return resolverConst;
   });
@@ -136,8 +138,10 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     `;
 
     await fs.mkdir(dirname(modulePath), { recursive: true });
-    await writeIfNew(`${modulePath}.ts`, resolverContents);
-    await writeIfNew(`${modulePath}.test.ts`, testContents);
+    const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
+    if (newFile) {
+      await writeIfNew(`${modulePath}.test.ts`, testContents);
+    }
 
     return resolverConst;
   });
@@ -170,8 +174,10 @@ async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promis
   `;
 
   await fs.mkdir(dirname(modulePath), { recursive: true });
-  await writeIfNew(`${modulePath}.ts`, resolverContents);
-  await writeIfNew(`${modulePath}.test.ts`, testContents);
+  const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
+  if (newFile) {
+    await writeIfNew(`${modulePath}.test.ts`, testContents);
+  }
 
   return resolverConst;
 }
@@ -237,11 +243,13 @@ function subDirectory(cwd: string, field: HasAst): string | undefined {
   return !path || shouldGoInTopLevel ? "" : `${path.replace(".graphql", "")}/`;
 }
 
-async function writeIfNew(path: string, code: Code): Promise<void> {
+async function writeIfNew(path: string, code: Code): Promise<boolean> {
   const exists = await trueIfResolved(fs.access(path));
   if (!exists) {
     await fs.writeFile(path, await code.toStringWithImports(path));
+    return true;
   }
+  return false;
 }
 
 /** The config values we read from the graphql-codegen.yml file. */
