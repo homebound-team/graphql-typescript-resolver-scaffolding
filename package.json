@@ -9,7 +9,7 @@
     "test": "./node_modules/.bin/jest --watch",
     "coverage": "./node_modules/.bin/jest --collectCoverage",
     "format": "prettier --write 'src/**/*.{ts,js,tsx,jsx,graphql}'",
-    "graphql-codegen": "(cd integration && rm -fr src/resolvers/mutations && rm -fr src/resolvers/queries && graphql-codegen --config graphql-codegen.yml && ../node_modules/.bin/tsc)"
+    "graphql-codegen": "(cd integration && rm -fr src/resolvers/objects && rm -fr src/resolvers/mutations && rm -fr src/resolvers/queries && graphql-codegen --config graphql-codegen.yml && ../node_modules/.bin/tsc)"
   },
   "dependencies": {
     "@graphql-codegen/plugin-helpers": "^1.13.5",

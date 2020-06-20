@@ -1,18 +1,10 @@
+import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
+import { pascalCase, camelCase } from "change-case";
+import { promises as fs } from "fs";
+import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
 import { dirname } from "path";
-import {
-  FieldDefinitionNode,
-  GraphQLField,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  Location,
-  ObjectTypeDefinitionNode,
-} from "graphql";
 import { code, Code, imp } from "ts-poet";
 import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
-import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
-import { promises as fs } from "fs";
-import { pascalCase } from "change-case";
 import PluginOutput = Types.PluginOutput;
 
 const QueryResolvers = imp("QueryResolvers@@src/generated/graphql-types");
@@ -30,7 +22,7 @@ function isGraphQLObjectType(o: any): o is GraphQLObjectType {
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const querySymbols: SymbolSpec[] = [];
   const mutationSymbols: SymbolSpec[] = [];
-  const objectSymbols: SymbolSpec[] = [];
+  const objectSymbols: Record<string, SymbolSpec> = {};
 
   const mutationType = schema.getMutationType();
   if (mutationType) {
@@ -52,12 +44,13 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
       .filter(value => config.mappers[value.name] !== undefined)
       .map(async o => {
         const sym = await maybeGenerateObjectScaffolding(o as GraphQLObjectType);
-        objectSymbols.push(sym);
+        objectSymbols[(o as GraphQLObjectType).name] = sym;
       }),
   );
 
   await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations.ts", mutationSymbols);
   await writeBarrelFile("queryResolvers", QueryResolvers, "queries.ts", querySymbols);
+  await writeObjectBarrelFile("objectResolvers", "objects.ts", objectSymbols);
 
   // We don't output any content into the generated-types.ts file.
   return {} as PluginOutput;
@@ -152,14 +145,15 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
   return (await Promise.all(promises)).flat();
 }
 
-/** Given the `Object` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
+/** Given the (mapped) `Object` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promise<SymbolSpec> {
   const cwd = await fs.realpath(".");
 
-  const name = object.name;
+  const name = camelCase(object.name);
   const resolverType = imp(`${object.name}Resolvers@@src/generated/graphql-types`);
 
   const resolverContents = code`
+    // @ts-ignore not implemented
     export const ${name}: ${resolverType} = {
     };
   `;
@@ -186,9 +180,21 @@ async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promis
 async function writeBarrelFile(constName: string, constType: SymbolSpec, filePath: string, symbols: SymbolSpec[]) {
   const contents = code`
     // This file is auto-generated
-    
+
     export const ${constName}: ${constType} = {
       ${symbols.map(symbol => code`...${symbol},`)}
+    }
+  `;
+  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports(filePath));
+}
+
+/** Creates a barrel file that re-exports every symbol in `symbols`. */
+async function writeObjectBarrelFile(constName: string, filePath: string, symbols: Record<string, SymbolSpec>) {
+  const contents = code`
+    // This file is auto-generated
+
+    export const ${constName} = {
+      ${Object.entries(symbols).map(([name, symbol]) => code`${name}: ${symbol},`)}
     }
   `;
   await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports(filePath));

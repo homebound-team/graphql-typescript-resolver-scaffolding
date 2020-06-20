@@ -6,6 +6,10 @@ extend type Query {
   books: [Book!]!
 }
 
+type Book {
+  name: String!
+}
+
 input BookInput {
   name: String
 }

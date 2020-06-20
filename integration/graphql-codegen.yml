@@ -8,6 +8,7 @@ generates:
       mappers:
         Foo: Bar
         Author: "@src/context#Id"
+        Book: "@src/context#Id"
     plugins:
       - ../build/index.js
       - "@homebound/graphql-typescript-simple-resolvers"

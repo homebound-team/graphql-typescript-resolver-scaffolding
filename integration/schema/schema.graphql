@@ -2,10 +2,6 @@ type Author {
   name: String!
 }
 
-type Book {
-  name: String!
-}
-
 schema {
   query: Query
   mutation: Mutation
