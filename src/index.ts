@@ -194,7 +194,7 @@ async function writeObjectBarrelFile(constName: string, filePath: string, symbol
     // This file is auto-generated
 
     export const ${constName} = {
-      ${Object.entries(symbols).map(([name, symbol]) => code`${name}: ${symbol},`)}
+      ${Object.entries(sortObject(symbols)).map(([name, symbol]) => code`${name}: ${symbol},`)}
     }
   `;
   await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports(filePath));
@@ -256,4 +256,13 @@ export async function trueIfResolved(p: Promise<unknown>): Promise<boolean> {
     () => true,
     () => false,
   );
+}
+
+function sortObject<T extends object>(obj: T): T {
+  return Object.keys(obj)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key as keyof T] = obj[key as keyof T];
+      return acc;
+    }, ({} as any) as T) as T;
 }
