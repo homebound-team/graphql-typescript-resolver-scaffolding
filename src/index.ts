@@ -36,12 +36,16 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
     consts.forEach(c => querySymbols.push(c));
   }
 
+  const ignoreObjectsPattern = config?.scaffolding?.ignoreObjectsPattern;
+  const ignoreObjectsRegex = ignoreObjectsPattern && new RegExp(ignoreObjectsPattern);
+
   await Promise.all(
     Object.values(schema.getTypeMap())
       .filter(value => isGraphQLObjectType(value))
       .filter(value => !value.name.startsWith("__"))
       .filter(value => value !== queryType && value !== mutationType)
       .filter(value => config.mappers[value.name] !== undefined)
+      .filter(value => ignoreObjectsRegex === undefined || !value.name.match(ignoreObjectsRegex))
       .map(async o => {
         const sym = await maybeGenerateObjectScaffolding(o as GraphQLObjectType);
         objectSymbols[(o as GraphQLObjectType).name] = sym;
@@ -256,6 +260,9 @@ async function writeIfNew(path: string, code: Code): Promise<boolean> {
 export type Config = {
   contextType: string;
   mappers: Record<string, string>;
+  scaffolding?: {
+    ignoreObjectsPattern?: string;
+  };
 };
 
 /** Returns true if `p` is resolved, otherwise false if it is rejected. */

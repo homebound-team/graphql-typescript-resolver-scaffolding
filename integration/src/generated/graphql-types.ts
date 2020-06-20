@@ -7,6 +7,7 @@ export interface Resolvers {
   Query: QueryResolvers;
   Book: BookResolvers;
   Author: AuthorResolvers;
+  AuthorEnumDetail: AuthorEnumDetailResolvers;
   SaveBookResult?: SaveBookResultResolvers;
   SaveAuthorResult?: SaveAuthorResultResolvers;
 }
@@ -27,6 +28,10 @@ export interface BookResolvers {
 }
 
 export interface AuthorResolvers {
+  name: Resolver<Id, {}, string>;
+}
+
+export interface AuthorEnumDetailResolvers {
   name: Resolver<Id, {}, string>;
 }
 

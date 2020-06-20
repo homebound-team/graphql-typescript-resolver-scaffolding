@@ -7,4 +7,6 @@ const resolvers: Resolvers = {
   Mutation: mutationResolvers,
   Query: queryResolvers,
   ...objectResolvers,
+  // Example of scaffold-ignored type.
+  AuthorEnumDetail: undefined!,
 };

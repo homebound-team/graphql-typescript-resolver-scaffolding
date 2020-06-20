@@ -51,6 +51,12 @@ Field resolvers for a given object go in a `<type-name.ts>`, potentially in a su
 
 Todo: Think about where `extend type OtherObject` things go, when both in `schema.graphql` (seems uncommon) or `fileName.graphql`. ...in the same sub-directory as `fileName`?
 
+## Config
+
+The plugin only generates scaffolds for objects that are mapped types.
+
+* `scaffolding.ignoreObjectsPattern` will ignore certain objects that are mapped types, but you don't want scaffolded
+
 ## Assumptions
 
 - Your context type is named `Context` and in `src/context`

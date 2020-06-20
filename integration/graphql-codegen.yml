@@ -9,6 +9,9 @@ generates:
         Foo: Bar
         Author: "@src/context#Id"
         Book: "@src/context#Id"
+        AuthorEnumDetail: "@src/context#Id"
+      scaffolding:
+        ignoreObjectsPattern: "EnumDetail$"
     plugins:
       - ../build/index.js
       - "@homebound/graphql-typescript-simple-resolvers"

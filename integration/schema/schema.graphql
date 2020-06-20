@@ -23,3 +23,8 @@ type SaveAuthorResult {
 input AuthorInput {
   name: String
 }
+
+# Example of a type we'll ignore
+type AuthorEnumDetail {
+  name: String!
+}
