@@ -52,9 +52,9 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
       }),
   );
 
-  await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations.ts", mutationSymbols);
-  await writeBarrelFile("queryResolvers", QueryResolvers, "queries.ts", querySymbols);
-  await writeObjectBarrelFile("objectResolvers", "objects.ts", objectSymbols);
+  await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations/index.ts", mutationSymbols);
+  await writeBarrelFile("queryResolvers", QueryResolvers, "queries/index.ts", querySymbols);
+  await writeObjectBarrelFile("objectResolvers", "objects/index.ts", objectSymbols);
 
   // We don't output any content into the generated-types.ts file.
   return {} as PluginOutput;
