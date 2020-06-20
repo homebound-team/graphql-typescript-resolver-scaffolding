@@ -1,9 +1,9 @@
-import { author } from "@src/resolvers/objects/authorResolver";
-import { book } from "@src/resolvers/objects/books/bookResolver";
+import { authorResolvers } from "@src/resolvers/objects/authorResolvers";
+import { bookResolvers } from "@src/resolvers/objects/books/bookResolvers";
 
 // This file is auto-generated
 
 export const objectResolvers = {
-  Author: author,
-  Book: book,
+  Author: authorResolvers,
+  Book: bookResolvers,
 };

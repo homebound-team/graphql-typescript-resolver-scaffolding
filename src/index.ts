@@ -149,7 +149,7 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
 async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promise<SymbolSpec> {
   const cwd = await fs.realpath(".");
 
-  const name = camelCase(object.name);
+  const name = camelCase(object.name) + "Resolvers";
   const resolverType = imp(`${object.name}Resolvers@@src/generated/graphql-types`);
 
   const resolverContents = code`
@@ -159,7 +159,7 @@ async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promis
   `;
 
   const maybeSubDir = subDirectory(cwd, object);
-  const modulePath = `${baseDir}/objects/${maybeSubDir}${name}Resolver`;
+  const modulePath = `${baseDir}/objects/${maybeSubDir}${name}`;
   const resolverConst = imp(`${name}@@${modulePath}`);
   const testContents = code`
     describe("${name}", () => {
