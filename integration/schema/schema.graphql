@@ -1,5 +1,6 @@
 type Author {
   name: String!
+  numberOfNumbers: Int
 }
 
 schema {

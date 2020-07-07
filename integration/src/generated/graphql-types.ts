@@ -5,8 +5,8 @@ import { GraphQLResolveInfo } from "graphql";
 export interface Resolvers {
   Mutation: MutationResolvers;
   Query: QueryResolvers;
-  Book: BookResolvers;
   Author: AuthorResolvers;
+  Book: BookResolvers;
   AuthorEnumDetail: AuthorEnumDetailResolvers;
   SaveBookResult?: SaveBookResultResolvers;
   SaveAuthorResult?: SaveAuthorResultResolvers;
@@ -23,11 +23,13 @@ export interface QueryResolvers {
   books: Resolver<{}, {}, Id[]>;
 }
 
-export interface BookResolvers {
+export interface AuthorResolvers {
+  books: Resolver<Id, {}, Id[]>;
   name: Resolver<Id, {}, string>;
+  numberOfNumbers: Resolver<Id, {}, number | null | undefined>;
 }
 
-export interface AuthorResolvers {
+export interface BookResolvers {
   name: Resolver<Id, {}, string>;
 }
 

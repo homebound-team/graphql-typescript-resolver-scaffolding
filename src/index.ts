@@ -27,13 +27,13 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const consts = await maybeGenerateMutationScaffolding(mutationType);
-    consts.forEach(c => mutationSymbols.push(c));
+    consts.forEach((c) => mutationSymbols.push(c));
   }
 
   const queryType = schema.getQueryType();
   if (queryType) {
     const consts = await generateQueryScaffolding(queryType);
-    consts.forEach(c => querySymbols.push(c));
+    consts.forEach((c) => querySymbols.push(c));
   }
 
   const ignoreObjectsPattern = config?.scaffolding?.ignoreObjectsPattern;
@@ -41,12 +41,12 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 
   await Promise.all(
     Object.values(schema.getTypeMap())
-      .filter(value => isGraphQLObjectType(value))
-      .filter(value => !value.name.startsWith("__"))
-      .filter(value => value !== queryType && value !== mutationType)
-      .filter(value => config.mappers[value.name] !== undefined)
-      .filter(value => ignoreObjectsRegex === undefined || !value.name.match(ignoreObjectsRegex))
-      .map(async o => {
+      .filter((value) => isGraphQLObjectType(value))
+      .filter((value) => !value.name.startsWith("__"))
+      .filter((value) => value !== queryType && value !== mutationType)
+      .filter((value) => config.mappers[value.name] !== undefined)
+      .filter((value) => ignoreObjectsRegex === undefined || !value.name.match(ignoreObjectsRegex))
+      .map(async (o) => {
         const sym = await maybeGenerateObjectScaffolding(o as GraphQLObjectType);
         objectSymbols[(o as GraphQLObjectType).name] = sym;
       }),
@@ -64,7 +64,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 async function generateQueryScaffolding(query: GraphQLObjectType): Promise<SymbolSpec[]> {
   const cwd = await fs.realpath(".");
 
-  const promises = Object.values(query.getFields()).map(async field => {
+  const promises = Object.values(query.getFields()).map(async (field) => {
     const name = field.name;
     const resolverContents = code`
       export const ${name}: Pick<${QueryResolvers}, "${name}"> = {
@@ -109,7 +109,7 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Symbo
 async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<SymbolSpec[]> {
   const cwd = await fs.realpath(".");
 
-  const promises = Object.values(mutation.getFields()).map(async field => {
+  const promises = Object.values(mutation.getFields()).map(async (field) => {
     const name = field.name;
     const resolverContents = code`
       export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
@@ -192,7 +192,7 @@ async function writeBarrelFile(constName: string, constType: SymbolSpec, filePat
     // This file is auto-generated
 
     export const ${constName}: ${constType} = {
-      ${symbols.map(symbol => code`...${symbol},`)}
+      ${symbols.map((symbol) => code`...${symbol},`)}
     }
   `;
   await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports(filePath));
@@ -230,7 +230,34 @@ function relativeSourcePath(cwd: string, node: HasAst): string | undefined {
   if (node instanceof GraphQLObjectType && Object.values(node.getFields()).length > 0) {
     // There is a bug in graphql-codegen/graphql-toolkit where the top-level objects don't
     // have source locations, but if we call .getFields() and look at the first field, it works.
-    source = Object.values(node.getFields())[0].astNode?.loc?.source.name;
+    //
+    // That said, the "first field" might be in a file that is doing `extends type ...`, so
+    // our heuristic is to look at all of the fields and pick the most-used source name.
+
+    // group by and count. Yuck.
+    const fieldSources = Object.values(node.getFields())
+      .map((f) => f.astNode?.loc?.source.name)
+      .reduce((acc, name) => {
+        if (name) {
+          if (acc[name]) {
+            acc[name]++;
+          } else {
+            acc[name] = 1;
+          }
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+    // Find the max. Yuck.
+    const fieldSource = Object.entries(fieldSources).reduce((max, next) => {
+      if (next[1] > max[1]) {
+        return next;
+      } else {
+        return max;
+      }
+    });
+
+    source = fieldSource[0];
   } else if (!(node instanceof GraphQLObjectType)) {
     source = node.astNode?.loc?.source.name;
   }
