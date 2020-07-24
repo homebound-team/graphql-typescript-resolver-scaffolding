@@ -135,7 +135,7 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
       });
 
       async function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
-        return await ${run}(ctx, async () => {
+        return await ${run}(ctx, async (ctx) => {
           return ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!);
         });
       }
