@@ -1,5 +1,5 @@
 
-import { Context, Id } from "@src/context";
+import { Context, Id } from "src/context";
 import { GraphQLResolveInfo } from "graphql";
 
 export interface Resolvers {

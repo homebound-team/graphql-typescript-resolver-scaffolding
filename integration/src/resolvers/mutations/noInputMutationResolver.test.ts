@@ -1,6 +1,6 @@
-import { Context } from "@src/context";
-import { run } from "@src/resolvers/testUtils";
-import { noInputMutation } from "@src/resolvers/mutations/noInputMutationResolver";
+import { Context } from "src/context";
+import { run } from "src/resolvers/testUtils";
+import { noInputMutation } from "src/resolvers/mutations/noInputMutationResolver";
 
 describe("noInputMutation", () => {
   it("handles this business case", () => {

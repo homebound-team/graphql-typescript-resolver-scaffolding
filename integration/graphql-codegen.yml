@@ -4,12 +4,12 @@ documents: null
 generates:
   src/generated/graphql-types.ts:
     config:
-      contextType: "@src/context#Context"
+      contextType: "src/context#Context"
       mappers:
         Foo: Bar
-        Author: "@src/context#Id"
-        Book: "@src/context#Id"
-        AuthorEnumDetail: "@src/context#Id"
+        Author: "src/context#Id"
+        Book: "src/context#Id"
+        AuthorEnumDetail: "src/context#Id"
       scaffolding:
         ignoreObjectsPattern: "EnumDetail$"
     plugins:

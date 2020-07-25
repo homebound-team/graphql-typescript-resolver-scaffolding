@@ -1,7 +1,7 @@
-import { Context } from "@src/context";
-import { QueryAuthorsArgs } from "@src/generated/graphql-types";
-import { run } from "@src/resolvers/testUtils";
-import { authors } from "@src/resolvers/queries/authorsResolver";
+import { Context } from "src/context";
+import { QueryAuthorsArgs } from "src/generated/graphql-types";
+import { run } from "src/resolvers/testUtils";
+import { authors } from "src/resolvers/queries/authorsResolver";
 
 describe("authors", () => {
   it("handles this business case", () => {

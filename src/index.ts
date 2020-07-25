@@ -7,10 +7,10 @@ import { code, Code, imp } from "ts-poet";
 import { SymbolSpec } from "ts-poet/build/SymbolSpecs";
 import PluginOutput = Types.PluginOutput;
 
-const QueryResolvers = imp("QueryResolvers@@src/generated/graphql-types");
-const MutationResolvers = imp("MutationResolvers@@src/generated/graphql-types");
-const Context = imp(`Context@@src/context`);
-const run = imp(`run@@src/resolvers/testUtils`);
+const QueryResolvers = imp("QueryResolvers@src/generated/graphql-types");
+const MutationResolvers = imp("MutationResolvers@src/generated/graphql-types");
+const Context = imp(`Context@src/context`);
+const run = imp(`run@src/resolvers/testUtils`);
 
 const baseDir = "src/resolvers";
 const fileNamesConsideredTopLevel = ["schema.graphql", "mutations.graphql", "queries.graphql", "root.graphql"];
@@ -74,11 +74,11 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Symbo
       };
     `;
 
-    const argsImp = field.args.length === 0 ? "{}" : imp(`Query${pascalCase(name)}Args@@src/generated/graphql-types`);
+    const argsImp = field.args.length === 0 ? "{}" : imp(`Query${pascalCase(name)}Args@src/generated/graphql-types`);
 
     const maybeSubDir = subDirectory(cwd, field);
     const modulePath = `${baseDir}/queries/${maybeSubDir}${name}Resolver`;
-    const resolverConst = imp(`${name}@@${modulePath}`);
+    const resolverConst = imp(`${name}@${modulePath}`);
     const testContents = code`
       describe("${name}", () => {
         it("handles this business case", () => {
@@ -122,11 +122,11 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
     const inputType = getInputType(field);
 
     // if no inputType then make inputImp void
-    const inputImp = inputType ? imp(`${inputType.name}@@src/generated/graphql-types`) : "void";
+    const inputImp = inputType ? imp(`${inputType.name}@src/generated/graphql-types`) : "void";
 
     const maybeSubDir = subDirectory(cwd, field);
     const modulePath = `${baseDir}/mutations/${maybeSubDir}${name}Resolver`;
-    const resolverConst = imp(`${name}@@${modulePath}`);
+    const resolverConst = imp(`${name}@${modulePath}`);
     const testContents = code`
       describe("${name}", () => {
         it("handles this business case", () => {
@@ -158,7 +158,7 @@ async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promis
   const cwd = await fs.realpath(".");
 
   const name = camelCase(object.name) + "Resolvers";
-  const resolverType = imp(`${object.name}Resolvers@@src/generated/graphql-types`);
+  const resolverType = imp(`${object.name}Resolvers@src/generated/graphql-types`);
 
   const resolverContents = code`
     // @ts-ignore not implemented
@@ -168,7 +168,7 @@ async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promis
 
   const maybeSubDir = subDirectory(cwd, object);
   const modulePath = `${baseDir}/objects/${maybeSubDir}${name}`;
-  const resolverConst = imp(`${name}@@${modulePath}`);
+  const resolverConst = imp(`${name}@${modulePath}`);
   const testContents = code`
     describe("${name}", () => {
       it("handles this business case", () => {
