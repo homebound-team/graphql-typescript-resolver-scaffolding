@@ -8,12 +8,13 @@ export interface Resolvers {
   Author: AuthorResolvers;
   Book: BookResolvers;
   AuthorEnumDetail: AuthorEnumDetailResolvers;
+  Subscription?: SubscriptionResolvers;
   SaveBookResult?: SaveBookResultResolvers;
   SaveAuthorResult?: SaveAuthorResultResolvers;
 }
 
 export interface MutationResolvers {
-  noInputMutation: Resolver<{}, {}, Boolean | null | undefined>;
+  noInputMutation: Resolver<{}, {}, boolean | null | undefined>;
   saveAuthor: Resolver<{}, MutationSaveAuthorArgs, SaveAuthorResult>;
   saveBook: Resolver<{}, MutationSaveBookArgs, SaveBookResult>;
 }
@@ -37,6 +38,11 @@ export interface AuthorEnumDetailResolvers {
   name: Resolver<Id, {}, string>;
 }
 
+export interface SubscriptionResolvers {
+  authorSaved: SubscriptionResolver<Subscription, {}, Id>;
+  bookSaved: SubscriptionResolver<Subscription, SubscriptionBookSavedArgs, Id | null | undefined>;
+}
+
 export interface SaveBookResultResolvers {
   author: Resolver<SaveBookResult, {}, Id>;
 }
@@ -45,7 +51,17 @@ export interface SaveAuthorResultResolvers {
   author: Resolver<SaveAuthorResult, {}, Id>;
 }
 
-type Resolver<R, A, T> = (root: R, args: A, ctx: Context, info: GraphQLResolveInfo) => T | Promise<T>;
+export type Resolver<R, A, T> = (root: R, args: A, ctx: Context, info: GraphQLResolveInfo) => T | Promise<T>;
+
+export type SubscriptionResolverFilter<R, A, T> = (
+  root: R | undefined,
+  args: A,
+  ctx: Context,
+  info: GraphQLResolveInfo,
+) => boolean | Promise<boolean>;
+export type SubscriptionResolver<R, A, T> = {
+  subscribe: (root: R | undefined, args: A, ctx: Context, info: GraphQLResolveInfo) => AsyncIterator<T>;
+};
 
 export interface MutationSaveAuthorArgs {
   input: AuthorInput;
@@ -54,8 +70,16 @@ export interface MutationSaveBookArgs {
   input: BookInput;
 }
 export interface QueryAuthorsArgs {
-  id: string | null | undefined;
+  id?: string | null | undefined;
 }
+export interface SubscriptionBookSavedArgs {
+  startsWith?: string | null | undefined;
+}
+export interface Subscription {
+  authorSaved: Id;
+  bookSaved: Id | null | undefined;
+}
+
 export interface SaveBookResult {
   author: Id;
 }

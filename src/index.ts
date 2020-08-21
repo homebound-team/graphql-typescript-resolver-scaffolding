@@ -9,11 +9,20 @@ import PluginOutput = Types.PluginOutput;
 
 const QueryResolvers = imp("QueryResolvers@src/generated/graphql-types");
 const MutationResolvers = imp("MutationResolvers@src/generated/graphql-types");
+const SubscriptionResolvers = imp("SubscriptionResolvers@src/generated/graphql-types");
+const withFilter = imp("withFilter@graphql-subscriptions");
+const SubscriptionResolverFilter = imp("SubscriptionResolverFilter@src/generated/graphql-types");
 const Context = imp(`Context@src/context`);
 const run = imp(`run@src/resolvers/testUtils`);
 
 const baseDir = "src/resolvers";
-const fileNamesConsideredTopLevel = ["schema.graphql", "mutations.graphql", "queries.graphql", "root.graphql"];
+const fileNamesConsideredTopLevel = [
+  "schema.graphql",
+  "mutations.graphql",
+  "queries.graphql",
+  "subscriptions.graphql",
+  "root.graphql",
+];
 
 function isGraphQLObjectType(o: any): o is GraphQLObjectType {
   return o instanceof GraphQLObjectType;
@@ -22,6 +31,7 @@ function isGraphQLObjectType(o: any): o is GraphQLObjectType {
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const querySymbols: SymbolSpec[] = [];
   const mutationSymbols: SymbolSpec[] = [];
+  const subscriptionSymbols: SymbolSpec[] = [];
   const objectSymbols: Record<string, SymbolSpec> = {};
 
   const mutationType = schema.getMutationType();
@@ -34,6 +44,12 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
   if (queryType) {
     const consts = await generateQueryScaffolding(queryType);
     consts.forEach((c) => querySymbols.push(c));
+  }
+
+  const subscriptionType = schema.getSubscriptionType();
+  if (subscriptionType) {
+    const consts = await generateSubscriptionScaffolding(subscriptionType);
+    consts.forEach((c) => subscriptionSymbols.push(c));
   }
 
   const ignoreObjectsPattern = config?.scaffolding?.ignoreObjectsPattern;
@@ -54,6 +70,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 
   await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations/index.ts", mutationSymbols);
   await writeBarrelFile("queryResolvers", QueryResolvers, "queries/index.ts", querySymbols);
+  await writeBarrelFile("subscriptionResolvers", SubscriptionResolvers, "subscriptions/index.ts", subscriptionSymbols);
   await writeObjectBarrelFile("objectResolvers", "objects/index.ts", objectSymbols);
 
   // We don't output any content into the generated-types.ts file.
@@ -143,6 +160,89 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
 
     await fs.mkdir(dirname(modulePath), { recursive: true });
     const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
+    if (newFile) {
+      await writeIfNew(`${modulePath}.test.ts`, testContents);
+    }
+
+    return resolverConst;
+  });
+
+  return (await Promise.all(promises)).flat();
+}
+
+/** Given the `Subscription` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
+async function generateSubscriptionScaffolding(subscription: GraphQLObjectType): Promise<SymbolSpec[]> {
+  const cwd = await fs.realpath(".");
+
+  const promises = Object.values(subscription.getFields()).map(async (field) => {
+    const name = field.name;
+    const argsImp =
+      field.args.length === 0 ? "{}" : imp(`Subscription${pascalCase(name)}Args@src/generated/graphql-types`);
+    const resolverContents: Code[] = [];
+
+    // define subscription event
+    resolverContents.push(code`
+        export const ${pascalCase(name)}Event = "${pascalCase(name)}Event";
+      `);
+    // if no args, simple implementation should do
+    if (field.args.length === 0) {
+      resolverContents.push(code`
+          export const ${name}: Pick<${SubscriptionResolvers}, "${name}"> = {
+            ${name}: {
+              subscribe: () => {
+                // likely can import pubsub implementation and uncomment next line
+                // return pubsub.asyncIterator(${pascalCase(name)}Event);
+                throw new Error("not implemented");
+              }
+            }
+          };
+        `);
+    } // enable subscription filtering if args not empty
+    // TODO figure out how to type the payload variable below
+    else {
+      resolverContents.push(code`
+          export const ${name}: Pick<${SubscriptionResolvers}, "${name}"> = {
+            ${name}: {
+              subscribe: ${withFilter}(
+                () => {
+                  // likely can import pubsub implementation and uncomment next line
+                  // return pubsub.asyncIterator(${pascalCase(name)}Event);
+                  throw new Error("not implemented");
+                },
+                (payload, args: ${argsImp}) => {
+                  // return true if payload / args should result in notification
+                  throw new Error("not implemented");
+                },
+              ),
+            }
+          };
+        `);
+    }
+
+    const maybeSubDir = subDirectory(cwd, field);
+    const modulePath = `${baseDir}/subscriptions/${maybeSubDir}${name}Resolver`;
+    const resolverConst = imp(`${name}@${modulePath}`);
+    const testContents = code`
+      describe("${name}", () => {
+        it("handles this business case", () => {
+          fail();
+        });
+      });
+
+      async function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
+        return await ${run}(ctx, async () => {
+          return ${resolverConst}.${name}.subscribe(
+            undefined,
+            argsFn(),
+            ctx,
+            undefined!
+          );
+        });
+      }
+    `;
+
+    await fs.mkdir(dirname(modulePath), { recursive: true });
+    const newFile = await writeIfNew(`${modulePath}.ts`, code`${resolverContents}`);
     if (newFile) {
       await writeIfNew(`${modulePath}.test.ts`, testContents);
     }

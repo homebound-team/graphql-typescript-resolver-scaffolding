@@ -6,6 +6,10 @@ extend type Query {
   books: [Book!]!
 }
 
+extend type Subscription {
+  bookSaved(startsWith: String): Book
+}
+
 # Example of books.graphql (sorts before schema.graphql) touching `Author` before its primary file
 extend type Author {
   books: [Book!]!

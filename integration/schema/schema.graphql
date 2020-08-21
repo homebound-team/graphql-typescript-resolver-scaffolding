@@ -6,6 +6,7 @@ type Author {
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
@@ -15,6 +16,10 @@ type Query {
 type Mutation {
   saveAuthor(input: AuthorInput!): SaveAuthorResult!
   noInputMutation: Boolean
+}
+
+type Subscription {
+  authorSaved: Author!
 }
 
 type SaveAuthorResult {
