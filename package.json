@@ -6,31 +6,23 @@
   "scripts": {
     "build": "rm -rf build; ./node_modules/.bin/tsc",
     "prepare": "npm run build",
-    "test": "./node_modules/.bin/jest --watch",
-    "coverage": "./node_modules/.bin/jest --collectCoverage",
     "format": "prettier --write 'src/**/*.{ts,js,tsx,jsx,graphql}'",
     "graphql-codegen": "(cd integration && rm -fr src/resolvers/objects && rm -fr src/resolvers/mutations && rm -fr src/resolvers/queries && rm -fr src/resolvers/subscriptions && graphql-codegen --config graphql-codegen.yml && ../node_modules/.bin/tsc)"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^1.16.3",
-    "change-case": "^4.1.1",
-    "graphql-subscriptions": "^1.1.0",
-    "ts-poet": "^3.2.2"
+    "@graphql-codegen/plugin-helpers": "^2.6.2",
+    "change-case": "^4.1.2",
+    "ts-poet": "^5.0.1"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^1.16.3",
-    "@homebound/graphql-typescript-simple-resolvers": "^1.33.0",
-    "@types/jest": "^26.0.4",
-    "@types/node": "^14.0.19",
-    "eslint-config-prettier": "^6.5.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "graphql": "^15.3.0",
+    "@graphql-codegen/cli": "^2.11.8",
+    "@homebound/graphql-typescript-simple-resolvers": "^1.48.0",
+    "@types/jest": "^28.1.8",
+    "graphql": "^15.8.0",
+    "graphql-subscriptions": "^2.0.0",
     "husky": "^4.2.5",
-    "jest": "^26.1.0",
-    "prettier": "^2.0.5",
-    "ts-jest": "^26.1.1",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.9.6"
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.2"
   },
   "husky": {
     "hooks": {

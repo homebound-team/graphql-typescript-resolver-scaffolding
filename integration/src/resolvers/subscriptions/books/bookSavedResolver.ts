@@ -1,4 +1,7 @@
-import { SubscriptionResolvers, SubscriptionBookSavedArgs } from "src/generated/graphql-types";
+import {
+  SubscriptionBookSavedArgs,
+  SubscriptionResolvers,
+} from "src/generated/graphql-types";
 import { withFilter } from "graphql-subscriptions";
 
 export const BookSavedEvent = "BookSavedEvent";
