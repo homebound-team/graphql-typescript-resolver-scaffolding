@@ -3,3 +3,12 @@
 /integration/build/
 /node_modules/
 *.tgz
+-e 
+# Yarn
+.pnp.*
+.yarn/*
+\!.yarn/patches
+\!.yarn/plugins
+\!.yarn/releases
+\!.yarn/sdks
+\!.yarn/versions
