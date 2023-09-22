@@ -4,7 +4,4 @@ import { books } from "src/resolvers/queries/books/booksResolver";
 
 // This file is auto-generated
 
-export const queryResolvers: QueryResolvers = {
-  ...authors,
-  ...books,
-};
+export const queryResolvers: QueryResolvers = { ...authors, ...books };

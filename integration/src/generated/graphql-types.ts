@@ -1,5 +1,5 @@
-import { Context, Id } from "src/context";
 import { GraphQLResolveInfo } from "graphql";
+import { Context, Id } from "src/context";
 
 export interface Resolvers {
   Author: AuthorResolvers;
@@ -49,20 +49,11 @@ export interface SaveBookResultResolvers {
 
 export interface SubscriptionResolvers {
   authorSaved: SubscriptionResolver<Subscription, {}, Id>;
-  bookSaved: SubscriptionResolver<
-    Subscription,
-    SubscriptionBookSavedArgs,
-    Id | null | undefined
-  >;
+  bookSaved: SubscriptionResolver<Subscription, SubscriptionBookSavedArgs, Id | null | undefined>;
 }
 
 type MaybePromise<T> = T | Promise<T>;
-export type Resolver<R, A, T> = (
-  root: R,
-  args: A,
-  ctx: Context,
-  info: GraphQLResolveInfo,
-) => MaybePromise<T>;
+export type Resolver<R, A, T> = (root: R, args: A, ctx: Context, info: GraphQLResolveInfo) => MaybePromise<T>;
 
 export type SubscriptionResolverFilter<R, A, T> = (
   root: R | undefined,
@@ -71,12 +62,7 @@ export type SubscriptionResolverFilter<R, A, T> = (
   info: GraphQLResolveInfo,
 ) => boolean | Promise<boolean>;
 export type SubscriptionResolver<R, A, T> = {
-  subscribe: (
-    root: R | undefined,
-    args: A,
-    ctx: Context,
-    info: GraphQLResolveInfo,
-  ) => AsyncIterator<T>;
+  subscribe: (root: R | undefined, args: A, ctx: Context, info: GraphQLResolveInfo) => AsyncIterator<T>;
 };
 
 export interface MutationSaveAuthorArgs {
