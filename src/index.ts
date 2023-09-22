@@ -330,16 +330,19 @@ function relativeSourcePath(cwd: string, node: HasAst): string | undefined {
     // group by and count. Yuck.
     const fieldSources = Object.values(node.getFields())
       .map((f) => f.astNode?.loc?.source.name)
-      .reduce((acc, name) => {
-        if (name) {
-          if (acc[name]) {
-            acc[name]++;
-          } else {
-            acc[name] = 1;
+      .reduce(
+        (acc, name) => {
+          if (name) {
+            if (acc[name]) {
+              acc[name]++;
+            } else {
+              acc[name] = 1;
+            }
           }
-        }
-        return acc;
-      }, {} as Record<string, number>);
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
     // Find the max. Yuck.
     const fieldSource = Object.entries(fieldSources).reduce((max, next) => {
@@ -396,8 +399,11 @@ export async function trueIfResolved(p: Promise<unknown>): Promise<boolean> {
 function sortObject<T extends object>(obj: T): T {
   return Object.keys(obj)
     .sort()
-    .reduce((acc, key) => {
-      acc[key as keyof T] = obj[key as keyof T];
-      return acc;
-    }, {} as any as T) as T;
+    .reduce(
+      (acc, key) => {
+        acc[key as keyof T] = obj[key as keyof T];
+        return acc;
+      },
+      {} as any as T,
+    ) as T;
 }
