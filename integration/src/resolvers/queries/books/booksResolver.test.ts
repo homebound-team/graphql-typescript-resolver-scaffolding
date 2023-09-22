@@ -1,6 +1,6 @@
 import { Context } from "src/context";
-import { run } from "src/resolvers/testUtils";
 import { books } from "src/resolvers/queries/books/booksResolver";
+import { run } from "src/resolvers/testUtils";
 
 describe("books", () => {
   it("handles this business case", () => {

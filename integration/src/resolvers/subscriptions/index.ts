@@ -4,7 +4,4 @@ import { bookSaved } from "src/resolvers/subscriptions/books/bookSavedResolver";
 
 // This file is auto-generated
 
-export const subscriptionResolvers: SubscriptionResolvers = {
-  ...authorSaved,
-  ...bookSaved,
-};
+export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved, ...bookSaved };

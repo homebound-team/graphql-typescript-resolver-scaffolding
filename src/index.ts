@@ -288,7 +288,7 @@ async function writeBarrelFile(constName: string, constType: Import, filePath: s
       ${symbols.map((symbol) => code`...${symbol},`)}
     }
   `;
-  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports({ path: filePath }));
+  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toString({ path: filePath }));
 }
 
 /** Creates a barrel file that re-exports every symbol in `symbols`. */
@@ -300,7 +300,7 @@ async function writeObjectBarrelFile(constName: string, filePath: string, symbol
       ${Object.entries(sortObject(symbols)).map(([name, symbol]) => code`${name}: ${symbol},`)}
     }
   `;
-  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toStringWithImports({ path: filePath }));
+  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toString({ path: filePath }));
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
@@ -330,16 +330,19 @@ function relativeSourcePath(cwd: string, node: HasAst): string | undefined {
     // group by and count. Yuck.
     const fieldSources = Object.values(node.getFields())
       .map((f) => f.astNode?.loc?.source.name)
-      .reduce((acc, name) => {
-        if (name) {
-          if (acc[name]) {
-            acc[name]++;
-          } else {
-            acc[name] = 1;
+      .reduce(
+        (acc, name) => {
+          if (name) {
+            if (acc[name]) {
+              acc[name]++;
+            } else {
+              acc[name] = 1;
+            }
           }
-        }
-        return acc;
-      }, {} as Record<string, number>);
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
     // Find the max. Yuck.
     const fieldSource = Object.entries(fieldSources).reduce((max, next) => {
@@ -370,7 +373,7 @@ function subDirectory(cwd: string, field: HasAst): string | undefined {
 async function writeIfNew(path: string, code: Code): Promise<boolean> {
   const exists = await trueIfResolved(fs.access(path));
   if (!exists) {
-    await fs.writeFile(path, await code.toStringWithImports({ path }));
+    await fs.writeFile(path, await code.toString({ path }));
     return true;
   }
   return false;
@@ -396,8 +399,11 @@ export async function trueIfResolved(p: Promise<unknown>): Promise<boolean> {
 function sortObject<T extends object>(obj: T): T {
   return Object.keys(obj)
     .sort()
-    .reduce((acc, key) => {
-      acc[key as keyof T] = obj[key as keyof T];
-      return acc;
-    }, {} as any as T) as T;
+    .reduce(
+      (acc, key) => {
+        acc[key as keyof T] = obj[key as keyof T];
+        return acc;
+      },
+      {} as any as T,
+    ) as T;
 }

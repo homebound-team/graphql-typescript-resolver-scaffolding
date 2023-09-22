@@ -1,7 +1,7 @@
 import { Context } from "src/context";
 import { BookInput } from "src/generated/graphql-types";
-import { run } from "src/resolvers/testUtils";
 import { saveBook } from "src/resolvers/mutations/books/saveBookResolver";
+import { run } from "src/resolvers/testUtils";
 
 describe("saveBook", () => {
   it("handles this business case", () => {
