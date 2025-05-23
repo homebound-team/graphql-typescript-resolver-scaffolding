@@ -96,10 +96,8 @@ async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Impor
         });
       });
 
-      async function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
-        return await ${run}(ctx, async () => {
-          return ${resolverConst}.${name}({}, argsFn(), ctx, undefined!);
-        });
+      function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
+        return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, argsFn(), ctx, undefined!));
       }
     `;
 
@@ -144,10 +142,8 @@ async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Pr
         });
       });
 
-      async function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
-        return await ${run}(ctx, async (ctx) => {
-          return ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!);
-        });
+      function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
+        return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!));
       }
     `;
 
@@ -222,15 +218,8 @@ async function generateSubscriptionScaffolding(subscription: GraphQLObjectType):
         });
       });
 
-      async function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
-        return await ${run}(ctx, async () => {
-          return ${resolverConst}.${name}.subscribe(
-            undefined,
-            argsFn(),
-            ctx,
-            undefined!
-          );
-        });
+      function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
+        return ${run}(ctx, (ctx) => ${resolverConst}.${name}.subscribe(undefined, argsFn(), ctx,undefined!));
       }
     `;
 

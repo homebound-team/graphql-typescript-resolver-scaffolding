@@ -9,8 +9,6 @@ describe("bookSaved", () => {
   });
 });
 
-async function runBookSaved(ctx: Context, argsFn: () => SubscriptionBookSavedArgs) {
-  return await run(ctx, async () => {
-    return bookSaved.bookSaved.subscribe(undefined, argsFn(), ctx, undefined!);
-  });
+function runBookSaved(ctx: Context, argsFn: () => SubscriptionBookSavedArgs) {
+  return run(ctx, (ctx) => bookSaved.bookSaved.subscribe(undefined, argsFn(), ctx, undefined!));
 }

@@ -692,13 +692,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@homebound/activesupport@npm:^1.9.0":
+  version: 1.10.0
+  resolution: "@homebound/activesupport@npm:1.10.0"
+  dependencies:
+    temporal-polyfill: ^0.2.4
+  checksum: 0d98d72905f11b0b75166a658c10d1f0a38420dd465c8d462e10dac67f09a791d4b28a7b812ebc78c9fc5359388642e9e1a683b17bd295f81300e0e730a38784
+  languageName: node
+  linkType: hard
+
 "@homebound/graphql-typescript-resolver-scaffolding@workspace:.":
   version: 0.0.0-use.local
   resolution: "@homebound/graphql-typescript-resolver-scaffolding@workspace:."
   dependencies:
     "@graphql-codegen/cli": ^5.0.0
     "@graphql-codegen/plugin-helpers": ^5.0.1
-    "@homebound/graphql-typescript-simple-resolvers": ^1.51.0
+    "@homebound/graphql-typescript-simple-resolvers": ^1.53.0
     "@types/jest": ^29.5.5
     change-case: ^4.1.2
     graphql: ^16.8.1
@@ -710,14 +719,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@homebound/graphql-typescript-simple-resolvers@npm:^1.51.0":
-  version: 1.51.0
-  resolution: "@homebound/graphql-typescript-simple-resolvers@npm:1.51.0"
+"@homebound/graphql-typescript-simple-resolvers@npm:^1.53.0":
+  version: 1.53.0
+  resolution: "@homebound/graphql-typescript-simple-resolvers@npm:1.53.0"
   dependencies:
     "@graphql-codegen/plugin-helpers": ^5.0.1
+    "@homebound/activesupport": ^1.9.0
     change-case: ^4.1.2
     ts-poet: ^6.6.0
-  checksum: ee69a2439eb685e048fc6b4371feb16767b354af527619c32b90281467979aae5e476ac1c7dede676537ee55d79064cecafcb168573c52a37c22f5e132cace01
+  checksum: d0221c743ea3cb83a1c2853d9c3973d9f1a95e19c8f3e34ef72eb7bc87be50031d90857ef020fb1a1dfef4e80cd29dbfb7430396c2bd52286d3ea160127e13c3
   languageName: node
   linkType: hard
 
@@ -2944,6 +2954,22 @@ __metadata:
   dependencies:
     tslib: ^2.0.3
   checksum: 6e21c9e1b3cd5735eb2af679a99ec3efc78a14e3d4d5e3fd594e254b91cfd37185b3d1c6e41b22f53a2cdf5d1b963ce30c0fe8b78337e3fd43d0137084670a5f
+  languageName: node
+  linkType: hard
+
+"temporal-polyfill@npm:^0.2.4":
+  version: 0.2.5
+  resolution: "temporal-polyfill@npm:0.2.5"
+  dependencies:
+    temporal-spec: ^0.2.4
+  checksum: 12be92c0a1d1268d5986716cf291e4cad8f941c6bd75ddf70bc5f6932cf6244d32c9ef8a0a9fc1311bf7fde4e37b9ff6ab82d9d27202604340571e4bbb5b8585
+  languageName: node
+  linkType: hard
+
+"temporal-spec@npm:^0.2.4":
+  version: 0.2.4
+  resolution: "temporal-spec@npm:0.2.4"
+  checksum: a458f44ac3c81b9a7225d72616b4f14419e5a7c4a2bce4a8fda0ff1d93a32dfba5bd74f51a756fba7ddd5d9cc7acecf5b62af72f218dcf115c31ceda93d30dd9
   languageName: node
   linkType: hard
 
