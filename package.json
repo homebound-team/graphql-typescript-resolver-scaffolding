@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",
-    "@homebound/graphql-typescript-simple-resolvers": "^1.51.0",
+    "@homebound/graphql-typescript-simple-resolvers": "^1.53.0",
     "@types/jest": "^29.5.5",
     "graphql": "^16.8.1",
     "graphql-subscriptions": "^2.0.0",

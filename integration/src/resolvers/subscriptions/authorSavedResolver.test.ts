@@ -8,8 +8,6 @@ describe("authorSaved", () => {
   });
 });
 
-async function runAuthorSaved(ctx: Context, argsFn: () => {}) {
-  return await run(ctx, async () => {
-    return authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!);
-  });
+function runAuthorSaved(ctx: Context, argsFn: () => {}) {
+  return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
 }
