@@ -1,5 +1,5 @@
 import { Context } from "src/context";
-import { noInputMutation } from "src/resolvers/mutations/noInputMutationResolver";
+import { noInputMutation } from "src/resolvers/mutations/noInputMutationMutation";
 import { run } from "src/resolvers/testUtils";
 
 describe("noInputMutation", () => {

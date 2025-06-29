@@ -1,5 +1,5 @@
 import { Context } from "src/context";
-import { books } from "src/resolvers/queries/books/booksResolver";
+import { books } from "src/resolvers/books/booksQuery";
 import { run } from "src/resolvers/testUtils";
 
 describe("books", () => {

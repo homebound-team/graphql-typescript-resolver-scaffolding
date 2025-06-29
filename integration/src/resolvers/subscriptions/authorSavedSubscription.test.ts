@@ -1,5 +1,5 @@
 import { Context } from "src/context";
-import { authorSaved } from "src/resolvers/subscriptions/authorSavedResolver";
+import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
 import { run } from "src/resolvers/testUtils";
 
 describe("authorSaved", () => {

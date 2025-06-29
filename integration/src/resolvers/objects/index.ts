@@ -1,5 +1,5 @@
+import { bookResolvers } from "src/resolvers/books/bookResolvers";
 import { authorResolvers } from "src/resolvers/objects/authorResolvers";
-import { bookResolvers } from "src/resolvers/objects/books/bookResolvers";
 
 // This file is auto-generated
 

@@ -1,3 +1,5 @@
+# These queries/mutations/resolvers will all go in a `src/resolvers/books/*` directory.
+
 extend type Mutation {
   saveBook(input: BookInput!): SaveBookResult!
 }
