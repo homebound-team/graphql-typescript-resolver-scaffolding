@@ -1,6 +1,6 @@
 {
   "name": "@homebound/graphql-typescript-resolver-scaffolding",
-  "version": "1.0.0-bump",
+  "version": "2.0.0-bump",
   "main": "./build/index.js",
   "types": "./build/",
   "scripts": {
