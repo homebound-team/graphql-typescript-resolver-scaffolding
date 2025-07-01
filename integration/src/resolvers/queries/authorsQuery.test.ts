@@ -1,6 +1,6 @@
 import { Context } from "src/context";
 import { QueryAuthorsArgs } from "src/generated/graphql-types";
-import { authors } from "src/resolvers/queries/authorsResolver";
+import { authors } from "src/resolvers/queries/authorsQuery";
 import { run } from "src/resolvers/testUtils";
 
 describe("authors", () => {

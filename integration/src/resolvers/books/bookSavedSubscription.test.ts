@@ -1,6 +1,6 @@
 import { Context } from "src/context";
 import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
-import { bookSaved } from "src/resolvers/subscriptions/books/bookSavedResolver";
+import { bookSaved } from "src/resolvers/books/bookSavedSubscription";
 import { run } from "src/resolvers/testUtils";
 
 describe("bookSaved", () => {

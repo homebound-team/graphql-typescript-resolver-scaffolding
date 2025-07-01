@@ -1,6 +1,6 @@
 import { Context } from "src/context";
 import { AuthorInput } from "src/generated/graphql-types";
-import { saveAuthor } from "src/resolvers/mutations/saveAuthorResolver";
+import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
 import { run } from "src/resolvers/testUtils";
 
 describe("saveAuthor", () => {

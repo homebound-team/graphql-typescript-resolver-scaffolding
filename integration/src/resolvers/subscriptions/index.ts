@@ -1,6 +1,6 @@
 import { SubscriptionResolvers } from "src/generated/graphql-types";
-import { authorSaved } from "src/resolvers/subscriptions/authorSavedResolver";
-import { bookSaved } from "src/resolvers/subscriptions/books/bookSavedResolver";
+import { bookSaved } from "src/resolvers/books/bookSavedSubscription";
+import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
 
 // This file is auto-generated
 

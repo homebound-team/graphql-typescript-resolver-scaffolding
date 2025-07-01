@@ -36,11 +36,12 @@ The generator works on a "create file if not already in place" approach, which m
 
 The placement logic is:
 
-- For types defined in `schema.graphql`
+- For types defined in "top-level" schema files like `schema.graphql` and `root.graphql`
   - Queries go in `src/resolvers/queries/<field-name>.ts`
   - Mutations go in `src/resolvers/mutations/<field-name>.ts`
   - Objects go in `src/resolvers/objects/<type-name>.ts`
-- For types defined in `fileName.graphql`
+  - Other "top-level" files include `queries.graphql`, `mutations.graphql`, and `subscriptions.graphql`
+- For types defined in `<fileName>.graphql`
   - `extend type Query`s go in `src/resolvers/queries/<file-name>/<field-name.ts>`
   - `extend type Mutation`s go in `src/resolvers/mutations/<file-name>/<field-name.ts>`
   - Objects go in `src/resolvers/objects/<file-name>/<type-name>.ts`

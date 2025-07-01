@@ -25,14 +25,17 @@ const fileNamesConsideredTopLevel = [
   "root.graphql",
 ];
 
-function isGraphQLObjectType(o: any): o is GraphQLObjectType {
-  return o instanceof GraphQLObjectType;
-}
-
+/**
+ * Given a schema, generates the top-level Query/Mutation/Object resovlers by stitching
+ * together the respective individual resolvers at expected locations.
+ *
+ * We also put scaffolding in each "expected location" place to help engineers
+ * know where to put things.
+ */
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const mutationType = schema.getMutationType();
   if (mutationType) {
-    const symbols = await maybeGenerateMutationScaffolding(mutationType);
+    const symbols = await generateMutationScaffolding(mutationType);
     await writeBarrelFile("mutationResolvers", MutationResolvers, "mutations/index.ts", symbols);
   }
 
@@ -48,6 +51,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
     await writeBarrelFile("subscriptionResolvers", SubscriptionResolvers, "subscriptions/index.ts", symbols);
   }
 
+  // Allow config to ignore certain objects, i.e. we ignore all of our enums b/c `enumsResolvers` codegens them
   const ignoreObjectsPattern = config?.scaffolding?.ignoreObjectsPattern;
   const ignoreObjectsRegex = ignoreObjectsPattern && new RegExp(ignoreObjectsPattern);
 
@@ -60,7 +64,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
       .filter((value) => config.mappers[value.name] !== undefined)
       .filter((value) => ignoreObjectsRegex === undefined || !value.name.match(ignoreObjectsRegex))
       .map(async (o) => {
-        const symbol = await maybeGenerateObjectScaffolding(o as GraphQLObjectType);
+        const symbol = await generateObjectScaffolding(o as GraphQLObjectType);
         objectSymbols[(o as GraphQLObjectType).name] = symbol;
       }),
   );
@@ -74,89 +78,97 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 async function generateQueryScaffolding(query: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
+  // Loop over every `Query.foo` field
   const promises = Object.values(query.getFields()).map(async (field) => {
     const name = field.name;
-    const resolverContents = code`
-      export const ${name}: Pick<${QueryResolvers}, "${name}"> = {
-        async ${name}(root, args, ctx) {
-          throw new Error("not implemented");
-        }
-      };
-    `;
 
     const argsImp = field.args.length === 0 ? "{}" : imp(`Query${pascalCase(name)}Args@src/generated/graphql-types`);
 
-    const maybeSubDir = subDirectory(cwd, field);
-    const modulePath = `${baseDir}/queries/${maybeSubDir}${name}Resolver`;
+    const maybeSubDir = maybeGetSchemaFile(cwd, field);
+    const modulePath = `${baseDir}/${maybeSubDir ?? "queries"}/${name}Query`;
     const resolverConst = imp(`${name}@${modulePath}`);
-    const testContents = code`
-      describe("${name}", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
 
-      function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
-        return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, argsFn(), ctx, undefined!));
-      }
-    `;
-
-    await fs.mkdir(dirname(modulePath), { recursive: true });
-    const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
+    const newFile = await writeIfNew(
+      `${modulePath}.ts`,
+      code`
+        export const ${name}: Pick<${QueryResolvers}, "${name}"> = {
+          async ${name}(root, args, ctx) {
+            throw new Error("not implemented");
+          }
+        };
+      `,
+    );
     if (newFile) {
-      await writeIfNew(`${modulePath}.test.ts`, testContents);
+      await writeIfNew(
+        `${modulePath}.test.ts`,
+        code`
+          describe("${name}", () => {
+            it("handles this business case", () => {
+              fail();
+            });
+          });
+
+          function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
+            return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, argsFn(), ctx, undefined!));
+          }
+        `,
+      );
     }
 
     return resolverConst;
   });
 
-  return (await Promise.all(promises)).flat();
+  return Promise.all(promises);
 }
 
 /** Given the `Mutation` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function maybeGenerateMutationScaffolding(mutation: GraphQLObjectType): Promise<Import[]> {
+async function generateMutationScaffolding(mutation: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(mutation.getFields()).map(async (field) => {
     const name = field.name;
-    const resolverContents = code`
-      export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
-        async ${name}(root, args, ctx) {
-          throw new Error("not implemented");
-        }
-      };
-    `;
 
+    // Look for the `input: ...Input!` convention
     const inputType = getInputType(field);
-
     // if no inputType then make inputImp void
     const inputImp = inputType ? imp(`${inputType.name}@src/generated/graphql-types`) : "void";
 
-    const maybeSubDir = subDirectory(cwd, field);
-    const modulePath = `${baseDir}/mutations/${maybeSubDir}${name}Resolver`;
+    const maybeSubDir = maybeGetSchemaFile(cwd, field);
+    const modulePath = `${baseDir}/${maybeSubDir ?? "mutations"}/${name}Mutation`;
     const resolverConst = imp(`${name}@${modulePath}`);
-    const testContents = code`
-      describe("${name}", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
 
-      function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
-        return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!));
-      }
-    `;
+    const newFile = await writeIfNew(
+      `${modulePath}.ts`,
+      code`
+        export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
+          async ${name}(root, args, ctx) {
+            throw new Error("not implemented");
+          }
+        };
+      `,
+    );
 
-    await fs.mkdir(dirname(modulePath), { recursive: true });
-    const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
     if (newFile) {
-      await writeIfNew(`${modulePath}.test.ts`, testContents);
+      await writeIfNew(
+        `${modulePath}.test.ts`,
+        code`
+        describe("${name}", () => {
+          it("handles this business case", () => {
+            fail();
+          });
+        });
+
+        function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
+          return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!));
+        }
+      `,
+      );
     }
 
     return resolverConst;
   });
 
-  return (await Promise.all(promises)).flat();
+  return Promise.all(promises);
 }
 
 /** Given the `Subscription` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
@@ -208,8 +220,8 @@ async function generateSubscriptionScaffolding(subscription: GraphQLObjectType):
         `);
     }
 
-    const maybeSubDir = subDirectory(cwd, field);
-    const modulePath = `${baseDir}/subscriptions/${maybeSubDir}${name}Resolver`;
+    const maybeSubDir = maybeGetSchemaFile(cwd, field);
+    const modulePath = `${baseDir}/${maybeSubDir ?? "subscriptions"}/${name}Subscription`;
     const resolverConst = imp(`${name}@${modulePath}`);
     const testContents = code`
       describe("${name}", () => {
@@ -223,7 +235,6 @@ async function generateSubscriptionScaffolding(subscription: GraphQLObjectType):
       }
     `;
 
-    await fs.mkdir(dirname(modulePath), { recursive: true });
     const newFile = await writeIfNew(`${modulePath}.ts`, code`${resolverContents}`);
     if (newFile) {
       await writeIfNew(`${modulePath}.test.ts`, testContents);
@@ -236,33 +247,34 @@ async function generateSubscriptionScaffolding(subscription: GraphQLObjectType):
 }
 
 /** Given the (mapped) `Object` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function maybeGenerateObjectScaffolding(object: GraphQLObjectType): Promise<Import> {
+async function generateObjectScaffolding(object: GraphQLObjectType): Promise<Import> {
   const cwd = await fs.realpath(".");
 
-  const name = camelCase(object.name) + "Resolvers";
+  const name = camelCase(object.name);
   const resolverType = imp(`${object.name}Resolvers@src/generated/graphql-types`);
+  const maybeSubDir = maybeGetSchemaFile(cwd, object);
+  const modulePath = `${baseDir}/${maybeSubDir ?? "objects"}/${name}Resolvers`;
+  const resolverConst = imp(`${name}Resolvers@${modulePath}`);
 
-  const resolverContents = code`
-    // @ts-ignore not implemented
-    export const ${name}: ${resolverType} = {
-    };
-  `;
-
-  const maybeSubDir = subDirectory(cwd, object);
-  const modulePath = `${baseDir}/objects/${maybeSubDir}${name}`;
-  const resolverConst = imp(`${name}@${modulePath}`);
-  const testContents = code`
-    describe("${name}", () => {
-      it("handles this business case", () => {
-        fail();
-      });
-    });
-  `;
-
-  await fs.mkdir(dirname(modulePath), { recursive: true });
-  const newFile = await writeIfNew(`${modulePath}.ts`, resolverContents);
+  const newFile = await writeIfNew(
+    `${modulePath}.ts`,
+    code`
+        // @ts-ignore not implemented
+        export const ${name}Resolvers: ${resolverType} = {
+        };
+      `,
+  );
   if (newFile) {
-    await writeIfNew(`${modulePath}.test.ts`, testContents);
+    await writeIfNew(
+      `${modulePath}.test.ts`,
+      code`
+        describe("${name}Resolvers", () => {
+          it("handles this business case", () => {
+            fail();
+          });
+        });
+      `,
+    );
   }
 
   return resolverConst;
@@ -277,7 +289,7 @@ async function writeBarrelFile(constName: string, constType: Import, filePath: s
       ${symbols.map((symbol) => code`...${symbol},`)}
     }
   `;
-  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toString({ path: filePath }));
+  await fs.writeFile(`${baseDir}/${filePath}`, contents.toString({ path: filePath }));
 }
 
 /** Creates a barrel file that re-exports every symbol in `symbols`. */
@@ -289,7 +301,7 @@ async function writeObjectBarrelFile(constName: string, filePath: string, symbol
       ${Object.entries(sortObject(symbols)).map(([name, symbol]) => code`${name}: ${symbol},`)}
     }
   `;
-  await fs.writeFile(`${baseDir}/${filePath}`, await contents.toString({ path: filePath }));
+  await fs.writeFile(`${baseDir}/${filePath}`, contents.toString({ path: filePath }));
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
@@ -306,7 +318,11 @@ function getInputType(field: GraphQLField<any, any>): GraphQLInputObjectType | u
 
 type HasAst = GraphQLObjectType | GraphQLField<any, any>;
 
-/** Finds the relative path within the `$projectDir/schema/` directory. */
+/**
+ * Finds the relative path within the `$projectDir/schema/` directory.
+ *
+ * I.e. given `node` is a `type Author`, returns the `author.graphql` file.
+ */
 function relativeSourcePath(cwd: string, node: HasAst): string | undefined {
   let source: string | undefined;
   if (node instanceof GraphQLObjectType && Object.values(node.getFields()).length > 0) {
@@ -353,16 +369,18 @@ function relativeSourcePath(cwd: string, node: HasAst): string | undefined {
   return undefined;
 }
 
-function subDirectory(cwd: string, field: HasAst): string | undefined {
+/** Given `field` is in `author.graphql`, returns `author` as the base file prefix. */
+function maybeGetSchemaFile(cwd: string, field: HasAst): string | undefined {
   const path = relativeSourcePath(cwd, field);
   const shouldGoInTopLevel = path && fileNamesConsideredTopLevel.includes(path);
-  return !path || shouldGoInTopLevel ? "" : `${path.replace(".graphql", "")}/`;
+  return !path || shouldGoInTopLevel ? undefined : path.replace(".graphql", "");
 }
 
 async function writeIfNew(path: string, code: Code): Promise<boolean> {
+  await fs.mkdir(dirname(path), { recursive: true });
   const exists = await trueIfResolved(fs.access(path));
   if (!exists) {
-    await fs.writeFile(path, await code.toString({ path }));
+    await fs.writeFile(path, code.toString({ path }));
     return true;
   }
   return false;
@@ -395,4 +413,8 @@ function sortObject<T extends object>(obj: T): T {
       },
       {} as any as T,
     ) as T;
+}
+
+function isGraphQLObjectType(o: any): o is GraphQLObjectType {
+  return o instanceof GraphQLObjectType;
 }
