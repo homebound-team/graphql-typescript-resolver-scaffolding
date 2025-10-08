@@ -44,32 +44,32 @@ describe("Subscription resolver scaffolding", () => {
     // Check that the test file was generated
     const testFile = getFile(files, "authorSavedSubscription.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { authorSaved } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("authorSaved", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("authorSaved", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runAuthorSaved(ctx: Context, argsFn: () => {}) {
-        return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
-      }
-      "
+     function runAuthorSaved(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
+     }
+     "
     `);
 
     // Check that the barrel file was generated
     const barrelFile = getFile(files, "subscriptions/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { SubscriptionResolvers } from "src/generated/graphql-types";
-      import { authorSaved } from "src/resolvers/GraphQL";
+     "import { SubscriptionResolvers } from "src/generated/graphql-types";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved };
-      "
+     export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved };
+     "
     `);
   });
 
@@ -120,21 +120,21 @@ describe("Subscription resolver scaffolding", () => {
     // Check that the test file was generated
     const testFile = getFile(files, "bookSavedSubscription.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
-      import { bookSaved } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
+     import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("bookSaved", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("bookSaved", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runBookSaved(ctx: Context, argsFn: () => SubscriptionBookSavedArgs) {
-        return run(ctx, (ctx) => bookSaved.bookSaved.subscribe(undefined, argsFn(), ctx, undefined!));
-      }
-      "
+     function runBookSaved(ctx: Context, argsFn: () => SubscriptionBookSavedArgs) {
+       return run(ctx, (ctx) => bookSaved.bookSaved.subscribe(undefined, argsFn(), ctx, undefined!));
+     }
+     "
     `);
   });
 
@@ -179,13 +179,15 @@ describe("Subscription resolver scaffolding", () => {
     // Check that the barrel file includes all subscriptions
     const barrelFile = getFile(files, "subscriptions/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { SubscriptionResolvers } from "src/generated/graphql-types";
-      import { authorSaved, bookSaved, userLoggedIn } from "src/resolvers/GraphQL";
+     "import { SubscriptionResolvers } from "src/generated/graphql-types";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
+     import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
+     import { userLoggedIn } from "src/resolvers/subscriptions/userLoggedInSubscription";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved, ...bookSaved, ...userLoggedIn };
-      "
+     export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved, ...bookSaved, ...userLoggedIn };
+     "
     `);
   });
 });

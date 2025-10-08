@@ -1,4 +1,4 @@
-import { buildSchema, GraphQLSchema } from "graphql";
+import { buildSchema, GraphQLSchema, Source } from "graphql";
 import { vol } from "memfs";
 import { plugin, Config } from "../../src/index";
 
@@ -38,8 +38,9 @@ jest.mock("fs", () => {
 /**
  * Test helper to create a GraphQL schema from SDL string
  */
-export function createTestSchema(sdl: string): GraphQLSchema {
-  return buildSchema(sdl);
+export function createTestSchema(sdl: string, schemaFileName: string = "root.graphql"): GraphQLSchema {
+  const source = new Source(sdl, schemaFileName);
+  return buildSchema(source);
 }
 
 /**

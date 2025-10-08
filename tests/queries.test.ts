@@ -34,33 +34,33 @@ describe("Query resolver scaffolding", () => {
     // Check that the test file was generated
     const testFile = getFile(files, "authorsQuery.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { QueryAuthorsArgs } from "src/generated/graphql-types";
-      import { authors } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { QueryAuthorsArgs } from "src/generated/graphql-types";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("authors", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runAuthors(ctx: Context, argsFn: () => QueryAuthorsArgs) {
-        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-      }
-      "
+     function runAuthors(ctx: Context, argsFn: () => QueryAuthorsArgs) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
+     "
     `);
 
     // Check that the barrel file was generated
     const barrelFile = getFile(files, "queries/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { QueryResolvers } from "src/generated/graphql-types";
-      import { authors } from "src/resolvers/GraphQL";
+     "import { QueryResolvers } from "src/generated/graphql-types";
+     import { authors } from "src/resolvers/queries/authorsQuery";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const queryResolvers: QueryResolvers = { ...authors };
-      "
+     export const queryResolvers: QueryResolvers = { ...authors };
+     "
     `);
   });
 
@@ -97,20 +97,20 @@ describe("Query resolver scaffolding", () => {
     // Check that the test file was generated
     const testFile = getFile(files, "booksQuery.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { books } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { books } from "src/resolvers/queries/booksQuery";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("books", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("books", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runBooks(ctx: Context, argsFn: () => {}) {
-        return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
-      }
-      "
+     function runBooks(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
+     }
+     "
     `);
   });
 
@@ -151,13 +151,15 @@ describe("Query resolver scaffolding", () => {
     // Check that the barrel file includes all queries
     const barrelFile = getFile(files, "queries/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { QueryResolvers } from "src/generated/graphql-types";
-      import { authors, books, users } from "src/resolvers/GraphQL";
+     "import { QueryResolvers } from "src/generated/graphql-types";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+     import { books } from "src/resolvers/queries/booksQuery";
+     import { users } from "src/resolvers/queries/usersQuery";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const queryResolvers: QueryResolvers = { ...authors, ...books, ...users };
-      "
+     export const queryResolvers: QueryResolvers = { ...authors, ...books, ...users };
+     "
     `);
   });
 });

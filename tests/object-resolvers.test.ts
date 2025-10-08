@@ -50,12 +50,13 @@ describe("Object resolver scaffolding", () => {
     // Check that the objects barrel file was generated
     const barrelFile = getFile(files, "objects/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { authorResolvers, bookResolvers } from "src/resolvers/GraphQL";
+     "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
-      "
+     export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
+     "
     `);
   });
 
@@ -134,12 +135,12 @@ describe("Object resolver scaffolding", () => {
     expect(barrelFile).not.toContain("Query");
     expect(barrelFile).not.toContain("Mutation");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { authorResolvers } from "src/resolvers/GraphQL";
+     "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Author: authorResolvers };
-      "
+     export const objectResolvers = { Author: authorResolvers };
+     "
     `);
   });
 
@@ -182,12 +183,14 @@ describe("Object resolver scaffolding", () => {
     expect(appleIndex).toBeLessThan(bananaIndex);
     expect(bananaIndex).toBeLessThan(zebraIndex);
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { appleResolvers, bananaResolvers, zebraResolvers } from "src/resolvers/GraphQL";
+     "import { appleResolvers } from "src/resolvers/objects/appleResolvers";
+     import { bananaResolvers } from "src/resolvers/objects/bananaResolvers";
+     import { zebraResolvers } from "src/resolvers/objects/zebraResolvers";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Apple: appleResolvers, Banana: bananaResolvers, Zebra: zebraResolvers };
-      "
+     export const objectResolvers = { Apple: appleResolvers, Banana: bananaResolvers, Zebra: zebraResolvers };
+     "
     `);
   });
 });

@@ -46,33 +46,33 @@ describe("Mutation resolver scaffolding", () => {
     // Check that the test file was generated
     const testFile = getFile(files, "saveAuthorMutation.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { AuthorInput } from "src/generated/graphql-types";
-      import { saveAuthor } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { AuthorInput } from "src/generated/graphql-types";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("saveAuthor", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("saveAuthor", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runSaveAuthor(ctx: Context, inputFn: () => AuthorInput) {
-        return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
-      }
-      "
+     function runSaveAuthor(ctx: Context, inputFn: () => AuthorInput) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
+     }
+     "
     `);
 
     // Check that the barrel file was generated
     const barrelFile = getFile(files, "mutations/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { MutationResolvers } from "src/generated/graphql-types";
-      import { saveAuthor } from "src/resolvers/GraphQL";
+     "import { MutationResolvers } from "src/generated/graphql-types";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const mutationResolvers: MutationResolvers = { ...saveAuthor };
-      "
+     export const mutationResolvers: MutationResolvers = { ...saveAuthor };
+     "
     `);
   });
 
@@ -107,20 +107,20 @@ describe("Mutation resolver scaffolding", () => {
     // Check that the test file was generated
     const testFile = getFile(files, "noInputMutationMutation.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { noInputMutation } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { noInputMutation } from "src/resolvers/mutations/noInputMutationMutation";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("noInputMutation", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("noInputMutation", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runNoInputMutation(ctx: Context, inputFn: () => void) {
-        return run(ctx, (ctx) => noInputMutation.noInputMutation({}, { input: inputFn() }, ctx, undefined!));
-      }
-      "
+     function runNoInputMutation(ctx: Context, inputFn: () => void) {
+       return run(ctx, (ctx) => noInputMutation.noInputMutation({}, { input: inputFn() }, ctx, undefined!));
+     }
+     "
     `);
   });
 
@@ -180,13 +180,15 @@ describe("Mutation resolver scaffolding", () => {
     // Check that the barrel file includes all mutations
     const barrelFile = getFile(files, "mutations/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { MutationResolvers } from "src/generated/graphql-types";
-      import { deleteAuthor, saveAuthor, saveBook } from "src/resolvers/GraphQL";
+     "import { MutationResolvers } from "src/generated/graphql-types";
+     import { deleteAuthor } from "src/resolvers/mutations/deleteAuthorMutation";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { saveBook } from "src/resolvers/mutations/saveBookMutation";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const mutationResolvers: MutationResolvers = { ...saveAuthor, ...saveBook, ...deleteAuthor };
-      "
+     export const mutationResolvers: MutationResolvers = { ...saveAuthor, ...saveBook, ...deleteAuthor };
+     "
     `);
   });
 });

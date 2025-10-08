@@ -47,12 +47,13 @@ describe("Config options", () => {
     // Check that the objects barrel file only includes non-ignored types
     const barrelFile = getFile(files, "objects/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { authorResolvers, bookResolvers } from "src/resolvers/GraphQL";
+     "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
-      "
+     export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
+     "
     `);
   });
 
@@ -86,7 +87,8 @@ describe("Config options", () => {
     // Check that the objects barrel file includes both
     const barrelFile = getFile(files, "objects/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-     "import { authorEnumDetailResolvers, authorResolvers } from "src/resolvers/GraphQL";
+     "import { authorEnumDetailResolvers } from "src/resolvers/objects/authorEnumDetailResolvers";
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
 
      // This file is auto-generated
 
@@ -133,12 +135,12 @@ describe("Config options", () => {
     // Check the barrel file
     const barrelFile = getFile(files, "objects/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { authorResolvers } from "src/resolvers/GraphQL";
+     "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Author: authorResolvers };
-      "
+     export const objectResolvers = { Author: authorResolvers };
+     "
     `);
   });
 
@@ -165,20 +167,20 @@ describe("Config options", () => {
     // Note: The actual import statement would reference the custom context
     // but we can verify the file was generated
     expect(testFile).toMatchInlineSnapshot(`
-      "import { Context } from "src/context";
-      import { authors } from "src/resolvers/GraphQL";
-      import { run } from "src/resolvers/testUtils";
+     "import { Context } from "src/context";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+     import { run } from "src/resolvers/testUtils";
 
-      describe("authors", () => {
-        it("handles this business case", () => {
-          fail();
-        });
-      });
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      function runAuthors(ctx: Context, argsFn: () => {}) {
-        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-      }
-      "
+     function runAuthors(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
+     "
     `);
   });
 
@@ -219,12 +221,14 @@ describe("Config options", () => {
     // Check the objects barrel file includes all of them
     const barrelFile = getFile(files, "objects/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { authorResolvers, bookResolvers, userResolvers } from "src/resolvers/GraphQL";
+     "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+     import { userResolvers } from "src/resolvers/objects/userResolvers";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Author: authorResolvers, Book: bookResolvers, User: userResolvers };
-      "
+     export const objectResolvers = { Author: authorResolvers, Book: bookResolvers, User: userResolvers };
+     "
     `);
   });
 });
