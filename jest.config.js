@@ -11,6 +11,4 @@ module.exports = {
   coverageReporters: ["text", "lcov", "html"],
   moduleFileExtensions: ["ts", "js", "json"],
   testTimeout: 10000,
-  // Use prettier-2 for inline snapshots to avoid compatibility issues
-  prettierPath: require.resolve("prettier-2"),
 };
