@@ -1,82 +1,15 @@
 import { createTestSchema, runPlugin, getFile } from "./utils/test-helpers";
 
 describe("Subscription resolver scaffolding", () => {
-  it("generates subscription resolver scaffolding without args", async () => {
+  it("generates expected subscription files with standard configuration", async () => {
     const schema = createTestSchema(`
       type Subscription {
         authorSaved: Author!
+        bookSaved(startsWith: String): Book
       }
 
       type Author {
         name: String!
-      }
-
-      type Query {
-        dummy: String
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      mappers: {
-        Author: "src/entities#Author",
-      },
-    });
-
-    // Check that the subscription resolver file was generated
-    const subscriptionFile = getFile(files, "authorSavedSubscription.ts");
-    expect(subscriptionFile).toMatchInlineSnapshot(`
-      "import { SubscriptionResolvers } from "src/generated/graphql-types";
-
-      export const AuthorSavedEvent = "AuthorSavedEvent";
-
-      export const authorSaved: Pick<SubscriptionResolvers, "authorSaved"> = {
-        authorSaved: {
-          subscribe: () => {
-            // likely can import pubsub implementation and uncomment next line
-            // return pubsub.asyncIterator(AuthorSavedEvent);
-            throw new Error("not implemented");
-          },
-        },
-      };
-      "
-    `);
-
-    // Check that the test file was generated
-    const testFile = getFile(files, "authorSavedSubscription.test.ts");
-    expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
-     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
-     import { run } from "src/resolvers/testUtils";
-
-     describe("authorSaved", () => {
-       it("handles this business case", () => {
-         fail();
-       });
-     });
-
-     function runAuthorSaved(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
-     }
-     "
-    `);
-
-    // Check that the barrel file was generated
-    const barrelFile = getFile(files, "subscriptions/index.ts");
-    expect(barrelFile).toMatchInlineSnapshot(`
-     "import { SubscriptionResolvers } from "src/generated/graphql-types";
-     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
-
-     // This file is auto-generated
-
-     export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved };
-     "
-    `);
-  });
-
-  it("generates subscription resolver scaffolding with args (filtering)", async () => {
-    const schema = createTestSchema(`
-      type Subscription {
-        bookSaved(startsWith: String): Book
       }
 
       type Book {
@@ -90,37 +23,100 @@ describe("Subscription resolver scaffolding", () => {
 
     const files = await runPlugin(schema, {
       mappers: {
+        Author: "src/entities#Author",
         Book: "src/entities#Book",
       },
     });
 
-    // Check that the subscription resolver file was generated with withFilter
-    const subscriptionFile = getFile(files, "bookSavedSubscription.ts");
-    expect(subscriptionFile).toMatchInlineSnapshot(`
-      "import { withFilter } from "graphql-subscriptions";
-      import { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types";
+    expect(files).toMatchInlineSnapshot(`
+     {
+       "src/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
 
-      export const BookSavedEvent = "BookSavedEvent";
+     // @ts-ignore not implemented
+     export const authorResolvers: AuthorResolvers = {};
+     ",
+       "src/resolvers/objects/bookResolvers.test.ts": "describe("bookResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
 
-      export const bookSaved: Pick<SubscriptionResolvers, "bookSaved"> = {
-        bookSaved: {
-          subscribe: withFilter(() => {
-            // likely can import pubsub implementation and uncomment next line
-            // return pubsub.asyncIterator(BookSavedEvent);
-            throw new Error("not implemented");
-          }, (payload, args: SubscriptionBookSavedArgs) => {
-            // return true if payload / args should result in notification
-            throw new Error("not implemented");
-          }),
-        },
-      };
-      "
-    `);
+     // @ts-ignore not implemented
+     export const bookResolvers: BookResolvers = {};
+     ",
+       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
 
-    // Check that the test file was generated
-    const testFile = getFile(files, "bookSavedSubscription.test.ts");
-    expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
+     // This file is auto-generated
+
+     export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
+     ",
+       "src/resolvers/queries/dummyQuery.test.ts": "import { Context } from "src/context";
+     import { dummy } from "src/resolvers/queries/dummyQuery";
+     import { run } from "src/resolvers/testUtils";
+
+     describe("dummy", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runDummy(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
+     }
+     ",
+       "src/resolvers/queries/dummyQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+
+     export const dummy: Pick<QueryResolvers, "dummy"> = {
+       async dummy(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+     import { dummy } from "src/resolvers/queries/dummyQuery";
+
+     // This file is auto-generated
+
+     export const queryResolvers: QueryResolvers = { ...dummy };
+     ",
+       "src/resolvers/subscriptions/authorSavedSubscription.test.ts": "import { Context } from "src/context";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
+     import { run } from "src/resolvers/testUtils";
+
+     describe("authorSaved", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runAuthorSaved(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
+     }
+     ",
+       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+
+     export const AuthorSavedEvent = "AuthorSavedEvent";
+
+     export const authorSaved: Pick<SubscriptionResolvers, "authorSaved"> = {
+       authorSaved: {
+         subscribe: () => {
+           // likely can import pubsub implementation and uncomment next line
+           // return pubsub.asyncIterator(AuthorSavedEvent);
+           throw new Error("not implemented");
+         },
+       },
+     };
+     ",
+       "src/resolvers/subscriptions/bookSavedSubscription.test.ts": "import { Context } from "src/context";
      import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
      import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
      import { run } from "src/resolvers/testUtils";
@@ -134,60 +130,34 @@ describe("Subscription resolver scaffolding", () => {
      function runBookSaved(ctx: Context, argsFn: () => SubscriptionBookSavedArgs) {
        return run(ctx, (ctx) => bookSaved.bookSaved.subscribe(undefined, argsFn(), ctx, undefined!));
      }
-     "
-    `);
-  });
+     ",
+       "src/resolvers/subscriptions/bookSavedSubscription.ts": "import { withFilter } from "graphql-subscriptions";
+     import { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types";
 
-  it("generates multiple subscription resolvers", async () => {
-    const schema = createTestSchema(`
-      type Subscription {
-        authorSaved: Author!
-        bookSaved: Book!
-        userLoggedIn(userId: ID): User
-      }
+     export const BookSavedEvent = "BookSavedEvent";
 
-      type Author {
-        name: String!
-      }
-
-      type Book {
-        title: String!
-      }
-
-      type User {
-        email: String!
-      }
-
-      type Query {
-        dummy: String
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      mappers: {
-        Author: "src/entities#Author",
-        Book: "src/entities#Book",
-        User: "src/entities#User",
-      },
-    });
-
-    // Check that all subscription resolver files were generated
-    expect(getFile(files, "authorSavedSubscription.ts")).toBeDefined();
-    expect(getFile(files, "bookSavedSubscription.ts")).toBeDefined();
-    expect(getFile(files, "userLoggedInSubscription.ts")).toBeDefined();
-
-    // Check that the barrel file includes all subscriptions
-    const barrelFile = getFile(files, "subscriptions/index.ts");
-    expect(barrelFile).toMatchInlineSnapshot(`
-     "import { SubscriptionResolvers } from "src/generated/graphql-types";
+     export const bookSaved: Pick<SubscriptionResolvers, "bookSaved"> = {
+       bookSaved: {
+         subscribe: withFilter(() => {
+           // likely can import pubsub implementation and uncomment next line
+           // return pubsub.asyncIterator(BookSavedEvent);
+           throw new Error("not implemented");
+         }, (payload, args: SubscriptionBookSavedArgs) => {
+           // return true if payload / args should result in notification
+           throw new Error("not implemented");
+         }),
+       },
+     };
+     ",
+       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
      import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
      import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
-     import { userLoggedIn } from "src/resolvers/subscriptions/userLoggedInSubscription";
 
      // This file is auto-generated
 
-     export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved, ...bookSaved, ...userLoggedIn };
-     "
+     export const subscriptionResolvers: SubscriptionResolvers = { ...authorSaved, ...bookSaved };
+     ",
+     }
     `);
   });
 });

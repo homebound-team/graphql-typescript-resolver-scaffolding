@@ -1,40 +1,61 @@
 import { createTestSchema, runPlugin, getFile } from "./utils/test-helpers";
 
 describe("Query resolver scaffolding", () => {
-  it("generates query resolver scaffolding with args", async () => {
+  it("generates expected query files with standard configuration", async () => {
     const schema = createTestSchema(`
       type Query {
         authors(id: ID): [Author!]!
+        books: [Book!]!
       }
 
       type Author {
         name: String!
+      }
+
+      type Book {
+        title: String!
       }
     `);
 
     const files = await runPlugin(schema, {
       mappers: {
         Author: "src/entities#Author",
+        Book: "src/entities#Book",
       },
     });
 
-    // Check that the query resolver file was generated
-    const queryFile = getFile(files, "authorsQuery.ts");
-    expect(queryFile).toMatchInlineSnapshot(`
-      "import { QueryResolvers } from "src/generated/graphql-types";
+    expect(files).toMatchInlineSnapshot(`
+     {
+       "src/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
 
-      export const authors: Pick<QueryResolvers, "authors"> = {
-        async authors(root, args, ctx) {
-          throw new Error("not implemented");
-        },
-      };
-      "
-    `);
+     // @ts-ignore not implemented
+     export const authorResolvers: AuthorResolvers = {};
+     ",
+       "src/resolvers/objects/bookResolvers.test.ts": "describe("bookResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
 
-    // Check that the test file was generated
-    const testFile = getFile(files, "authorsQuery.test.ts");
-    expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
+     // @ts-ignore not implemented
+     export const bookResolvers: BookResolvers = {};
+     ",
+       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+
+     // This file is auto-generated
+
+     export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
+     ",
+       "src/resolvers/queries/authorsQuery.test.ts": "import { Context } from "src/context";
      import { QueryAuthorsArgs } from "src/generated/graphql-types";
      import { authors } from "src/resolvers/queries/authorsQuery";
      import { run } from "src/resolvers/testUtils";
@@ -48,56 +69,16 @@ describe("Query resolver scaffolding", () => {
      function runAuthors(ctx: Context, argsFn: () => QueryAuthorsArgs) {
        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
      }
-     "
-    `);
+     ",
+       "src/resolvers/queries/authorsQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
 
-    // Check that the barrel file was generated
-    const barrelFile = getFile(files, "queries/index.ts");
-    expect(barrelFile).toMatchInlineSnapshot(`
-     "import { QueryResolvers } from "src/generated/graphql-types";
-     import { authors } from "src/resolvers/queries/authorsQuery";
-
-     // This file is auto-generated
-
-     export const queryResolvers: QueryResolvers = { ...authors };
-     "
-    `);
-  });
-
-  it("generates query resolver scaffolding without args", async () => {
-    const schema = createTestSchema(`
-      type Query {
-        books: [Book!]!
-      }
-
-      type Book {
-        title: String!
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      mappers: {
-        Book: "src/entities#Book",
-      },
-    });
-
-    // Check that the query resolver file was generated
-    const queryFile = getFile(files, "booksQuery.ts");
-    expect(queryFile).toMatchInlineSnapshot(`
-      "import { QueryResolvers } from "src/generated/graphql-types";
-
-      export const books: Pick<QueryResolvers, "books"> = {
-        async books(root, args, ctx) {
-          throw new Error("not implemented");
-        },
-      };
-      "
-    `);
-
-    // Check that the test file was generated
-    const testFile = getFile(files, "booksQuery.test.ts");
-    expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
+     export const authors: Pick<QueryResolvers, "authors"> = {
+       async authors(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/queries/booksQuery.test.ts": "import { Context } from "src/context";
      import { books } from "src/resolvers/queries/booksQuery";
      import { run } from "src/resolvers/testUtils";
 
@@ -110,56 +91,24 @@ describe("Query resolver scaffolding", () => {
      function runBooks(ctx: Context, argsFn: () => {}) {
        return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
      }
-     "
-    `);
-  });
+     ",
+       "src/resolvers/queries/booksQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
 
-  it("generates multiple query resolvers", async () => {
-    const schema = createTestSchema(`
-      type Query {
-        authors: [Author!]!
-        books: [Book!]!
-        users: [User!]!
-      }
-
-      type Author {
-        name: String!
-      }
-
-      type Book {
-        title: String!
-      }
-
-      type User {
-        email: String!
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      mappers: {
-        Author: "src/entities#Author",
-        Book: "src/entities#Book",
-        User: "src/entities#User",
-      },
-    });
-
-    // Check that all query resolver files were generated
-    expect(getFile(files, "authorsQuery.ts")).toBeDefined();
-    expect(getFile(files, "booksQuery.ts")).toBeDefined();
-    expect(getFile(files, "usersQuery.ts")).toBeDefined();
-
-    // Check that the barrel file includes all queries
-    const barrelFile = getFile(files, "queries/index.ts");
-    expect(barrelFile).toMatchInlineSnapshot(`
-     "import { QueryResolvers } from "src/generated/graphql-types";
+     export const books: Pick<QueryResolvers, "books"> = {
+       async books(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
      import { authors } from "src/resolvers/queries/authorsQuery";
      import { books } from "src/resolvers/queries/booksQuery";
-     import { users } from "src/resolvers/queries/usersQuery";
 
      // This file is auto-generated
 
-     export const queryResolvers: QueryResolvers = { ...authors, ...books, ...users };
-     "
+     export const queryResolvers: QueryResolvers = { ...authors, ...books };
+     ",
+     }
     `);
   });
 });

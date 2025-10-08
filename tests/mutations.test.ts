@@ -1,10 +1,11 @@
 import { createTestSchema, runPlugin, getFile } from "./utils/test-helpers";
 
 describe("Mutation resolver scaffolding", () => {
-  it("generates mutation resolver scaffolding with input", async () => {
+  it("generates expected mutation files with standard configuration", async () => {
     const schema = createTestSchema(`
       type Mutation {
         saveAuthor(input: AuthorInput!): SaveAuthorResult!
+        noInputMutation: Boolean
       }
 
       input AuthorInput {
@@ -30,23 +31,39 @@ describe("Mutation resolver scaffolding", () => {
       },
     });
 
-    // Check that the mutation resolver file was generated
-    const mutationFile = getFile(files, "saveAuthorMutation.ts");
-    expect(mutationFile).toMatchInlineSnapshot(`
-      "import { MutationResolvers } from "src/generated/graphql-types";
+    expect(files).toMatchInlineSnapshot(`
+     {
+       "src/resolvers/mutations/index.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+     import { noInputMutation } from "src/resolvers/mutations/noInputMutationMutation";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
 
-      export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
-        async saveAuthor(root, args, ctx) {
-          throw new Error("not implemented");
-        },
-      };
-      "
-    `);
+     // This file is auto-generated
 
-    // Check that the test file was generated
-    const testFile = getFile(files, "saveAuthorMutation.test.ts");
-    expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
+     export const mutationResolvers: MutationResolvers = { ...saveAuthor, ...noInputMutation };
+     ",
+       "src/resolvers/mutations/noInputMutationMutation.test.ts": "import { Context } from "src/context";
+     import { noInputMutation } from "src/resolvers/mutations/noInputMutationMutation";
+     import { run } from "src/resolvers/testUtils";
+
+     describe("noInputMutation", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runNoInputMutation(ctx: Context, inputFn: () => void) {
+       return run(ctx, (ctx) => noInputMutation.noInputMutation({}, { input: inputFn() }, ctx, undefined!));
+     }
+     ",
+       "src/resolvers/mutations/noInputMutationMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+
+     export const noInputMutation: Pick<MutationResolvers, "noInputMutation"> = {
+       async noInputMutation(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/mutations/saveAuthorMutation.test.ts": "import { Context } from "src/context";
      import { AuthorInput } from "src/generated/graphql-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
      import { run } from "src/resolvers/testUtils";
@@ -60,135 +77,62 @@ describe("Mutation resolver scaffolding", () => {
      function runSaveAuthor(ctx: Context, inputFn: () => AuthorInput) {
        return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
      }
-     "
-    `);
+     ",
+       "src/resolvers/mutations/saveAuthorMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types";
 
-    // Check that the barrel file was generated
-    const barrelFile = getFile(files, "mutations/index.ts");
-    expect(barrelFile).toMatchInlineSnapshot(`
-     "import { MutationResolvers } from "src/generated/graphql-types";
-     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
+       async saveAuthor(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+
+     // @ts-ignore not implemented
+     export const authorResolvers: AuthorResolvers = {};
+     ",
+       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
 
      // This file is auto-generated
 
-     export const mutationResolvers: MutationResolvers = { ...saveAuthor };
-     "
-    `);
-  });
-
-  it("generates mutation resolver scaffolding without input", async () => {
-    const schema = createTestSchema(`
-      type Mutation {
-        noInputMutation: Boolean
-      }
-
-      type Query {
-        dummy: String
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      mappers: {},
-    });
-
-    // Check that the mutation resolver file was generated
-    const mutationFile = getFile(files, "noInputMutationMutation.ts");
-    expect(mutationFile).toMatchInlineSnapshot(`
-      "import { MutationResolvers } from "src/generated/graphql-types";
-
-      export const noInputMutation: Pick<MutationResolvers, "noInputMutation"> = {
-        async noInputMutation(root, args, ctx) {
-          throw new Error("not implemented");
-        },
-      };
-      "
-    `);
-
-    // Check that the test file was generated
-    const testFile = getFile(files, "noInputMutationMutation.test.ts");
-    expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
-     import { noInputMutation } from "src/resolvers/mutations/noInputMutationMutation";
+     export const objectResolvers = { Author: authorResolvers };
+     ",
+       "src/resolvers/queries/dummyQuery.test.ts": "import { Context } from "src/context";
+     import { dummy } from "src/resolvers/queries/dummyQuery";
      import { run } from "src/resolvers/testUtils";
 
-     describe("noInputMutation", () => {
+     describe("dummy", () => {
        it("handles this business case", () => {
          fail();
        });
      });
 
-     function runNoInputMutation(ctx: Context, inputFn: () => void) {
-       return run(ctx, (ctx) => noInputMutation.noInputMutation({}, { input: inputFn() }, ctx, undefined!));
+     function runDummy(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
      }
-     "
-    `);
-  });
+     ",
+       "src/resolvers/queries/dummyQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
 
-  it("generates multiple mutation resolvers", async () => {
-    const schema = createTestSchema(`
-      type Mutation {
-        saveAuthor(input: AuthorInput!): SaveAuthorResult!
-        saveBook(input: BookInput!): SaveBookResult!
-        deleteAuthor(input: DeleteAuthorInput!): Boolean!
-      }
-
-      input AuthorInput {
-        name: String
-      }
-
-      input BookInput {
-        title: String
-      }
-
-      input DeleteAuthorInput {
-        id: ID!
-      }
-
-      type SaveAuthorResult {
-        author: Author!
-      }
-
-      type SaveBookResult {
-        book: Book!
-      }
-
-      type Author {
-        name: String!
-      }
-
-      type Book {
-        title: String!
-      }
-
-      type Query {
-        dummy: String
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      mappers: {
-        Author: "src/entities#Author",
-        Book: "src/entities#Book",
-      },
-    });
-
-    // Check that all mutation resolver files were generated
-    expect(getFile(files, "saveAuthorMutation.ts")).toBeDefined();
-    expect(getFile(files, "saveBookMutation.ts")).toBeDefined();
-    expect(getFile(files, "deleteAuthorMutation.ts")).toBeDefined();
-
-    // Check that the barrel file includes all mutations
-    const barrelFile = getFile(files, "mutations/index.ts");
-    expect(barrelFile).toMatchInlineSnapshot(`
-     "import { MutationResolvers } from "src/generated/graphql-types";
-     import { deleteAuthor } from "src/resolvers/mutations/deleteAuthorMutation";
-     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
-     import { saveBook } from "src/resolvers/mutations/saveBookMutation";
+     export const dummy: Pick<QueryResolvers, "dummy"> = {
+       async dummy(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+     import { dummy } from "src/resolvers/queries/dummyQuery";
 
      // This file is auto-generated
 
-     export const mutationResolvers: MutationResolvers = { ...saveAuthor, ...saveBook, ...deleteAuthor };
-     "
+     export const queryResolvers: QueryResolvers = { ...dummy };
+     ",
+     }
     `);
   });
 });
