@@ -75,19 +75,19 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 
   const mutationType = schema.getMutationType();
   if (mutationType) {
-    const symbols = await generateMutationScaffolding(mutationType, ctx);
+    const symbols = await generateMutationScaffolding(ctx, mutationType);
     await writeBarrelFile("mutationResolvers", ctx.MutationResolvers, "mutations/index.ts", symbols, ctx.tsPoetConfig);
   }
 
   const queryType = schema.getQueryType();
   if (queryType) {
-    const symbols = await generateQueryScaffolding(queryType, ctx);
+    const symbols = await generateQueryScaffolding(ctx, queryType);
     await writeBarrelFile("queryResolvers", ctx.QueryResolvers, "queries/index.ts", symbols, ctx.tsPoetConfig);
   }
 
   const subscriptionType = schema.getSubscriptionType();
   if (subscriptionType) {
-    const symbols = await generateSubscriptionScaffolding(subscriptionType, ctx);
+    const symbols = await generateSubscriptionScaffolding(ctx, subscriptionType);
     await writeBarrelFile(
       "subscriptionResolvers",
       ctx.SubscriptionResolvers,
@@ -110,7 +110,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
       .filter((value) => config.mappers[value.name] !== undefined)
       .filter((value) => ignoreObjectsRegex === undefined || !value.name.match(ignoreObjectsRegex))
       .map(async (o) => {
-        const symbol = await generateObjectScaffolding(o as GraphQLObjectType, ctx);
+        const symbol = await generateObjectScaffolding(ctx, o as GraphQLObjectType);
         objectSymbols[(o as GraphQLObjectType).name] = symbol;
       }),
   );
@@ -121,7 +121,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 };
 
 /** Given the `Query` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateQueryScaffolding(query: GraphQLObjectType, ctx: ScaffoldingContext): Promise<Import[]> {
+async function generateQueryScaffolding(ctx: ScaffoldingContext, query: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
   // Loop over every `Query.foo` field
@@ -175,7 +175,7 @@ async function generateQueryScaffolding(query: GraphQLObjectType, ctx: Scaffoldi
 }
 
 /** Given the `Mutation` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateMutationScaffolding(mutation: GraphQLObjectType, ctx: ScaffoldingContext): Promise<Import[]> {
+async function generateMutationScaffolding(ctx: ScaffoldingContext, mutation: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(mutation.getFields()).map(async (field) => {
@@ -230,8 +230,8 @@ async function generateMutationScaffolding(mutation: GraphQLObjectType, ctx: Sca
 
 /** Given the `Subscription` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function generateSubscriptionScaffolding(
-  subscription: GraphQLObjectType,
   ctx: ScaffoldingContext,
+  subscription: GraphQLObjectType,
 ): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
@@ -311,7 +311,7 @@ async function generateSubscriptionScaffolding(
 }
 
 /** Given the (mapped) `Object` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateObjectScaffolding(object: GraphQLObjectType, ctx: ScaffoldingContext): Promise<Import> {
+async function generateObjectScaffolding(ctx: ScaffoldingContext, object: GraphQLObjectType): Promise<Import> {
   const cwd = await fs.realpath(".");
 
   const name = camelCase(object.name);
