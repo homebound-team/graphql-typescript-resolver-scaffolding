@@ -74,11 +74,13 @@ export async function runPlugin(
 
     // Capture all files written to the virtual filesystem
     const allFiles = vol.toJSON();
+    const cwd = process.cwd();
     const writtenFiles: Record<string, string> = {};
     for (const [path, content] of Object.entries(allFiles)) {
       if (content !== null) {
         const contentStr = typeof content === "string" ? content : (content as Buffer).toString();
-        writtenFiles[path] = contentStr;
+        const relativePath = path.startsWith(cwd) ? path.slice(cwd.length + 1) : path;
+        writtenFiles[relativePath] = contentStr;
       }
     }
 
