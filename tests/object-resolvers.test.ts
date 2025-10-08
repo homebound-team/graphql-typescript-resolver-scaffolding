@@ -26,8 +26,6 @@ describe("Object resolver scaffolding", () => {
 
     // Check that the object resolver files were generated
     const authorResolverFile = getFile(files, "authorResolvers.ts");
-    expect(authorResolverFile).toBeDefined();
-    expect(authorResolverFile).toContain("AuthorResolvers");
     expect(authorResolverFile).toMatchInlineSnapshot(`
       "import { AuthorResolvers } from "src/generated/graphql-types";
 
@@ -37,8 +35,6 @@ describe("Object resolver scaffolding", () => {
     `);
 
     const bookResolverFile = getFile(files, "bookResolvers.ts");
-    expect(bookResolverFile).toBeDefined();
-    expect(bookResolverFile).toContain("BookResolvers");
     expect(bookResolverFile).toMatchInlineSnapshot(`
       "import { BookResolvers } from "src/generated/graphql-types";
 
@@ -53,9 +49,6 @@ describe("Object resolver scaffolding", () => {
 
     // Check that the objects barrel file was generated
     const barrelFile = getFile(files, "objects/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("Author");
-    expect(barrelFile).toContain("Book");
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { authorResolvers, bookResolvers } from "src/resolvers/GraphQL";
 

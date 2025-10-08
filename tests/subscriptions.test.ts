@@ -24,9 +24,6 @@ describe("Subscription resolver scaffolding", () => {
 
     // Check that the subscription resolver file was generated
     const subscriptionFile = getFile(files, "authorSavedSubscription.ts");
-    expect(subscriptionFile).toBeDefined();
-    expect(subscriptionFile).toContain("AuthorSavedEvent");
-    expect(subscriptionFile).toContain("pubsub.asyncIterator");
     expect(subscriptionFile).toMatchInlineSnapshot(`
       "import { SubscriptionResolvers } from "src/generated/graphql-types";
 
@@ -46,7 +43,6 @@ describe("Subscription resolver scaffolding", () => {
 
     // Check that the test file was generated
     const testFile = getFile(files, "authorSavedSubscription.test.ts");
-    expect(testFile).toBeDefined();
     expect(testFile).toMatchInlineSnapshot(`
       "import { Context } from "src/context";
       import { authorSaved } from "src/resolvers/GraphQL";
@@ -66,7 +62,6 @@ describe("Subscription resolver scaffolding", () => {
 
     // Check that the barrel file was generated
     const barrelFile = getFile(files, "subscriptions/index.ts");
-    expect(barrelFile).toBeDefined();
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { SubscriptionResolvers } from "src/generated/graphql-types";
       import { authorSaved } from "src/resolvers/GraphQL";
@@ -101,10 +96,6 @@ describe("Subscription resolver scaffolding", () => {
 
     // Check that the subscription resolver file was generated with withFilter
     const subscriptionFile = getFile(files, "bookSavedSubscription.ts");
-    expect(subscriptionFile).toBeDefined();
-    expect(subscriptionFile).toContain("BookSavedEvent");
-    expect(subscriptionFile).toContain("withFilter");
-    expect(subscriptionFile).toContain("pubsub.asyncIterator");
     expect(subscriptionFile).toMatchInlineSnapshot(`
       "import { withFilter } from "graphql-subscriptions";
       import { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types";
@@ -128,7 +119,6 @@ describe("Subscription resolver scaffolding", () => {
 
     // Check that the test file was generated
     const testFile = getFile(files, "bookSavedSubscription.test.ts");
-    expect(testFile).toBeDefined();
     expect(testFile).toMatchInlineSnapshot(`
       "import { Context } from "src/context";
       import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
@@ -188,10 +178,6 @@ describe("Subscription resolver scaffolding", () => {
 
     // Check that the barrel file includes all subscriptions
     const barrelFile = getFile(files, "subscriptions/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("authorSaved");
-    expect(barrelFile).toContain("bookSaved");
-    expect(barrelFile).toContain("userLoggedIn");
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { SubscriptionResolvers } from "src/generated/graphql-types";
       import { authorSaved, bookSaved, userLoggedIn } from "src/resolvers/GraphQL";

@@ -32,7 +32,6 @@ describe("Mutation resolver scaffolding", () => {
 
     // Check that the mutation resolver file was generated
     const mutationFile = getFile(files, "saveAuthorMutation.ts");
-    expect(mutationFile).toBeDefined();
     expect(mutationFile).toMatchInlineSnapshot(`
       "import { MutationResolvers } from "src/generated/graphql-types";
 
@@ -46,7 +45,6 @@ describe("Mutation resolver scaffolding", () => {
 
     // Check that the test file was generated
     const testFile = getFile(files, "saveAuthorMutation.test.ts");
-    expect(testFile).toBeDefined();
     expect(testFile).toMatchInlineSnapshot(`
       "import { Context } from "src/context";
       import { AuthorInput } from "src/generated/graphql-types";
@@ -67,7 +65,6 @@ describe("Mutation resolver scaffolding", () => {
 
     // Check that the barrel file was generated
     const barrelFile = getFile(files, "mutations/index.ts");
-    expect(barrelFile).toBeDefined();
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { MutationResolvers } from "src/generated/graphql-types";
       import { saveAuthor } from "src/resolvers/GraphQL";
@@ -96,7 +93,6 @@ describe("Mutation resolver scaffolding", () => {
 
     // Check that the mutation resolver file was generated
     const mutationFile = getFile(files, "noInputMutationMutation.ts");
-    expect(mutationFile).toBeDefined();
     expect(mutationFile).toMatchInlineSnapshot(`
       "import { MutationResolvers } from "src/generated/graphql-types";
 
@@ -110,7 +106,6 @@ describe("Mutation resolver scaffolding", () => {
 
     // Check that the test file was generated
     const testFile = getFile(files, "noInputMutationMutation.test.ts");
-    expect(testFile).toBeDefined();
     expect(testFile).toMatchInlineSnapshot(`
       "import { Context } from "src/context";
       import { noInputMutation } from "src/resolvers/GraphQL";
@@ -184,10 +179,6 @@ describe("Mutation resolver scaffolding", () => {
 
     // Check that the barrel file includes all mutations
     const barrelFile = getFile(files, "mutations/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("saveAuthor");
-    expect(barrelFile).toContain("saveBook");
-    expect(barrelFile).toContain("deleteAuthor");
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { MutationResolvers } from "src/generated/graphql-types";
       import { deleteAuthor, saveAuthor, saveBook } from "src/resolvers/GraphQL";

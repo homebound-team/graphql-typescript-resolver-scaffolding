@@ -20,7 +20,6 @@ describe("Query resolver scaffolding", () => {
 
     // Check that the query resolver file was generated
     const queryFile = getFile(files, "authorsQuery.ts");
-    expect(queryFile).toBeDefined();
     expect(queryFile).toMatchInlineSnapshot(`
       "import { QueryResolvers } from "src/generated/graphql-types";
 
@@ -34,7 +33,6 @@ describe("Query resolver scaffolding", () => {
 
     // Check that the test file was generated
     const testFile = getFile(files, "authorsQuery.test.ts");
-    expect(testFile).toBeDefined();
     expect(testFile).toMatchInlineSnapshot(`
       "import { Context } from "src/context";
       import { QueryAuthorsArgs } from "src/generated/graphql-types";
@@ -55,7 +53,6 @@ describe("Query resolver scaffolding", () => {
 
     // Check that the barrel file was generated
     const barrelFile = getFile(files, "queries/index.ts");
-    expect(barrelFile).toBeDefined();
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { QueryResolvers } from "src/generated/graphql-types";
       import { authors } from "src/resolvers/GraphQL";
@@ -86,7 +83,6 @@ describe("Query resolver scaffolding", () => {
 
     // Check that the query resolver file was generated
     const queryFile = getFile(files, "booksQuery.ts");
-    expect(queryFile).toBeDefined();
     expect(queryFile).toMatchInlineSnapshot(`
       "import { QueryResolvers } from "src/generated/graphql-types";
 
@@ -100,7 +96,6 @@ describe("Query resolver scaffolding", () => {
 
     // Check that the test file was generated
     const testFile = getFile(files, "booksQuery.test.ts");
-    expect(testFile).toBeDefined();
     expect(testFile).toMatchInlineSnapshot(`
       "import { Context } from "src/context";
       import { books } from "src/resolvers/GraphQL";
@@ -155,10 +150,6 @@ describe("Query resolver scaffolding", () => {
 
     // Check that the barrel file includes all queries
     const barrelFile = getFile(files, "queries/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("authors");
-    expect(barrelFile).toContain("books");
-    expect(barrelFile).toContain("users");
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { QueryResolvers } from "src/generated/graphql-types";
       import { authors, books, users } from "src/resolvers/GraphQL";
