@@ -8,7 +8,7 @@
     "format": "prettier --write 'src/**/*.{ts,js,tsx,jsx,graphql}'",
     "test": "jest",
     "postinstall": "husky",
-    "prepack": " pinst --disable && yarn build",
+    "prepack": "pinst --disable && yarn build",
     "postpack": "pinst --enable"
   },
   "dependencies": {
