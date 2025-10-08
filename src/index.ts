@@ -11,7 +11,6 @@ import PluginOutput = Types.PluginOutput;
 
 const withFilter = imp("withFilter@graphql-subscriptions");
 
-const baseDir = "src/resolvers";
 const fileNamesConsideredTopLevel = [
   "schema.graphql",
   "mutations.graphql",
@@ -22,6 +21,7 @@ const fileNamesConsideredTopLevel = [
 
 interface PluginContext {
   tsPoetConfig: ToStringOpts;
+  resolversPath: string;
   graphqlTypesPath: string;
   QueryResolvers: Import;
   MutationResolvers: Import;
@@ -40,6 +40,7 @@ interface PluginContext {
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const {
     emitLegacyCommonJSImports = true,
+    resolversPath = "src/resolvers",
     graphqlTypesPath = "src/generated/graphql-types",
     testUtilsPath = "src/resolvers/testUtils",
   } = config;
@@ -47,6 +48,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
     tsPoetConfig: {
       importExtensions: emitLegacyCommonJSImports ? false : "js",
     },
+    resolversPath,
     graphqlTypesPath,
     QueryResolvers: toImp(buildSpec(graphqlTypesPath, "QueryResolvers"), {
       typeName: "QueryResolvers",
@@ -67,19 +69,34 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const symbols = await generateMutationScaffolding(ctx, mutationType);
-    await writeBarrelFile("mutationResolvers", ctx.MutationResolvers, "mutations/index.ts", symbols, ctx.tsPoetConfig);
+    await writeBarrelFile(
+      ctx.resolversPath,
+      "mutationResolvers",
+      ctx.MutationResolvers,
+      "mutations/index.ts",
+      symbols,
+      ctx.tsPoetConfig,
+    );
   }
 
   const queryType = schema.getQueryType();
   if (queryType) {
     const symbols = await generateQueryScaffolding(ctx, queryType);
-    await writeBarrelFile("queryResolvers", ctx.QueryResolvers, "queries/index.ts", symbols, ctx.tsPoetConfig);
+    await writeBarrelFile(
+      ctx.resolversPath,
+      "queryResolvers",
+      ctx.QueryResolvers,
+      "queries/index.ts",
+      symbols,
+      ctx.tsPoetConfig,
+    );
   }
 
   const subscriptionType = schema.getSubscriptionType();
   if (subscriptionType) {
     const symbols = await generateSubscriptionScaffolding(ctx, subscriptionType);
     await writeBarrelFile(
+      ctx.resolversPath,
       "subscriptionResolvers",
       ctx.SubscriptionResolvers,
       "subscriptions/index.ts",
@@ -105,7 +122,13 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
         objectSymbols[(o as GraphQLObjectType).name] = symbol;
       }),
   );
-  await writeObjectBarrelFile("objectResolvers", "objects/index.ts", objectSymbols, ctx.tsPoetConfig);
+  await writeObjectBarrelFile(
+    ctx.resolversPath,
+    "objectResolvers",
+    "objects/index.ts",
+    objectSymbols,
+    ctx.tsPoetConfig,
+  );
 
   // We don't output any content into the generated-types.ts file.
   return {} as PluginOutput;
@@ -127,11 +150,11 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
           }) as Import);
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
-    const modulePath = `${baseDir}/${maybeSubDir ?? "queries"}/${name}Query`;
+    const modulePath = `${ctx.resolversPath}/${maybeSubDir ?? "queries"}/${name}Query`;
     const resolverConst = imp(`${name}@${modulePath}.ts`);
 
     const newFile = await writeIfNew(
-      `${modulePath}.ts`,
+      `${toFilesystemPath(modulePath)}.ts`,
       code`
         export const ${name}: Pick<${ctx.QueryResolvers}, "${name}"> = {
           async ${name}(root, args, ctx) {
@@ -143,7 +166,7 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
     );
     if (newFile) {
       await writeIfNew(
-        `${modulePath}.test.ts`,
+        `${toFilesystemPath(modulePath)}.test.ts`,
         code`
           describe("${name}", () => {
             it("handles this business case", () => {
@@ -180,11 +203,11 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
       : "void";
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
-    const modulePath = `${baseDir}/${maybeSubDir ?? "mutations"}/${name}Mutation`;
+    const modulePath = `${ctx.resolversPath}/${maybeSubDir ?? "mutations"}/${name}Mutation`;
     const resolverConst = imp(`${name}@${modulePath}.ts`);
 
     const newFile = await writeIfNew(
-      `${modulePath}.ts`,
+      `${toFilesystemPath(modulePath)}.ts`,
       code`
         export const ${name}: Pick<${ctx.MutationResolvers}, "${name}"> = {
           async ${name}(root, args, ctx) {
@@ -197,7 +220,7 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
 
     if (newFile) {
       await writeIfNew(
-        `${modulePath}.test.ts`,
+        `${toFilesystemPath(modulePath)}.test.ts`,
         code`
         describe("${name}", () => {
           it("handles this business case", () => {
@@ -273,7 +296,7 @@ async function generateSubscriptionScaffolding(ctx: PluginContext, subscription:
     }
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
-    const modulePath = `${baseDir}/${maybeSubDir ?? "subscriptions"}/${name}Subscription`;
+    const modulePath = `${ctx.resolversPath}/${maybeSubDir ?? "subscriptions"}/${name}Subscription`;
     const resolverConst = imp(`${name}@${modulePath}.ts`);
     const testContents = code`
       describe("${name}", () => {
@@ -287,9 +310,9 @@ async function generateSubscriptionScaffolding(ctx: PluginContext, subscription:
       }
     `;
 
-    const newFile = await writeIfNew(`${modulePath}.ts`, code`${resolverContents}`, ctx.tsPoetConfig);
+    const newFile = await writeIfNew(`${toFilesystemPath(modulePath)}.ts`, code`${resolverContents}`, ctx.tsPoetConfig);
     if (newFile) {
-      await writeIfNew(`${modulePath}.test.ts`, testContents, ctx.tsPoetConfig);
+      await writeIfNew(`${toFilesystemPath(modulePath)}.test.ts`, testContents, ctx.tsPoetConfig);
     }
 
     return resolverConst;
@@ -307,11 +330,11 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
     isTypeOnlyImport: true,
   }) as Import;
   const maybeSubDir = maybeGetSchemaFile(cwd, object);
-  const modulePath = `${baseDir}/${maybeSubDir ?? "objects"}/${name}Resolvers`;
+  const modulePath = `${ctx.resolversPath}/${maybeSubDir ?? "objects"}/${name}Resolvers`;
   const resolverConst = imp(`${name}Resolvers@${modulePath}.ts`);
 
   const newFile = await writeIfNew(
-    `${modulePath}.ts`,
+    `${toFilesystemPath(modulePath)}.ts`,
     code`
         // @ts-ignore not implemented
         export const ${name}Resolvers: ${resolverType} = {
@@ -321,7 +344,7 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
   );
   if (newFile) {
     await writeIfNew(
-      `${modulePath}.test.ts`,
+      `${toFilesystemPath(modulePath)}.test.ts`,
       code`
         describe("${name}Resolvers", () => {
           it("handles this business case", () => {
@@ -338,6 +361,7 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
 
 /** Creates a barrel file that re-exports every symbol in `symbols`. */
 async function writeBarrelFile(
+  resolversPath: string,
   constName: string,
   constType: Import,
   filePath: string,
@@ -351,11 +375,15 @@ async function writeBarrelFile(
       ${symbols.map((symbol) => code`...${symbol},`)}
     }
   `;
-  await fs.writeFile(`${baseDir}/${filePath}`, contents.toString({ path: filePath, ...tsPoetConfig }));
+  await fs.writeFile(
+    `${toFilesystemPath(resolversPath)}/${filePath}`,
+    contents.toString({ path: filePath, ...tsPoetConfig }),
+  );
 }
 
 /** Creates a barrel file that re-exports every symbol in `symbols`. */
 async function writeObjectBarrelFile(
+  resolversPath: string,
   constName: string,
   filePath: string,
   symbols: Record<string, Import>,
@@ -368,7 +396,10 @@ async function writeObjectBarrelFile(
       ${Object.entries(sortObject(symbols)).map(([name, symbol]) => code`${name}: ${symbol},`)}
     }
   `;
-  await fs.writeFile(`${baseDir}/${filePath}`, contents.toString({ path: filePath, ...tsPoetConfig }));
+  await fs.writeFile(
+    `${toFilesystemPath(resolversPath)}/${filePath}`,
+    contents.toString({ path: filePath, ...tsPoetConfig }),
+  );
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
@@ -513,6 +544,8 @@ export function toImp(
 export interface Config extends RawConfig {
   contextType: string;
   mappers: Record<string, string>;
+  /** Output directory for generated resolver scaffolding. Defaults to "src/resolvers". Supports subpath imports like "#src/resolvers". */
+  resolversPath?: string;
   /** Path to the generated GraphQL types file. Defaults to "src/generated/graphql-types". Supports subpath imports like "#src/graphql-types". */
   graphqlTypesPath?: string;
   /** Path to the test utils module. Defaults to "src/resolvers/testUtils". Supports subpath imports like "#src/testUtils". */
@@ -550,4 +583,13 @@ function buildSpec(path: string, exportName: string): string {
   // If path starts with #, it's a subpath import and needs to be escaped
   const escapedPath = path.startsWith("#") ? `\\${path}` : path;
   return `${escapedPath}#${exportName}`;
+}
+
+/**
+ * Converts a potentially subpath-import path to a filesystem path by stripping the leading #
+ *
+ * NOTE that this assumes the subpath is relative to the project root (which is true for our use-cases)
+ */
+function toFilesystemPath(path: string): string {
+  return path.startsWith("#") ? path.substring(1) : path;
 }
