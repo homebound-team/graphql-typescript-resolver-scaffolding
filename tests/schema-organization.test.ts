@@ -1,7 +1,5 @@
 import { buildSchema } from "graphql";
-import { plugin } from "../src/index";
-import { getFile } from "./utils/test-helpers";
-import * as fs from "fs";
+import { runPlugin, getFile } from "./utils/test-helpers";
 
 describe("Schema file organization", () => {
   // Note: This feature depends on the file path in the AST, which we need to mock more carefully
@@ -37,51 +35,27 @@ describe("Schema file organization", () => {
       }
     `);
 
-    const writtenFiles: Record<string, string> = {};
-
-    // Mock fs to capture file writes
-    jest.spyOn(fs.promises, "writeFile").mockImplementation(async (filePath: any, content: any) => {
-      writtenFiles[filePath.toString()] = content.toString();
+    const writtenFiles = await runPlugin(schema, {
+      mappers: {
+        Book: "src/entities#Book",
+      },
     });
 
-    jest.spyOn(fs.promises, "mkdir").mockImplementation(async () => undefined as any);
-    jest.spyOn(fs.promises, "access").mockImplementation(async () => {
-      throw new Error("File does not exist");
-    });
+    // When using buildSchema without file paths, GraphQL uses "GraphQL request" as source
+    // This gets used as a subdirectory name in the plugin
+    expect(getFile(writtenFiles, "booksQuery.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "saveBookMutation.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "bookSavedSubscription.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "bookResolvers.ts")).toBeDefined();
 
-    // Mock realpath to return test project directory
-    jest.spyOn(fs.promises, "realpath").mockImplementation(async () => "/test-project");
+    // Barrel files are still generated in the standard locations
+    expect(getFile(writtenFiles, "queries/index.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "mutations/index.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "subscriptions/index.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "objects/index.ts")).toBeDefined();
 
-    try {
-      await plugin(
-        schema,
-        [],
-        {
-          contextType: "src/context#Context",
-          mappers: {
-            Book: "src/entities#Book",
-          },
-        },
-      );
-
-      // When using buildSchema without file paths, GraphQL uses "GraphQL request" as source
-      // This gets used as a subdirectory name in the plugin
-      expect(getFile(writtenFiles, "booksQuery.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "saveBookMutation.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "bookSavedSubscription.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "bookResolvers.ts")).toBeDefined();
-
-      // Barrel files are still generated in the standard locations
-      expect(getFile(writtenFiles, "queries/index.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "mutations/index.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "subscriptions/index.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "objects/index.ts")).toBeDefined();
-
-      // Note: In real usage with actual .graphql files (not buildSchema),
-      // resolvers defined in "books.graphql" would go in "books/" subdirectory
-    } finally {
-      jest.restoreAllMocks();
-    }
+    // Note: In real usage with actual .graphql files (not buildSchema),
+    // resolvers defined in "books.graphql" would go in "books/" subdirectory
   });
 
   it("uses default directories for queries/mutations in top-level schema files", async () => {
@@ -106,42 +80,21 @@ describe("Schema file organization", () => {
       }
     `);
 
-    const writtenFiles: Record<string, string> = {};
-
-    jest.spyOn(fs.promises, "writeFile").mockImplementation(async (filePath: any, content: any) => {
-      writtenFiles[filePath.toString()] = content.toString();
+    const writtenFiles = await runPlugin(schema, {
+      mappers: {
+        Author: "src/entities#Author",
+      },
     });
 
-    jest.spyOn(fs.promises, "mkdir").mockImplementation(async () => undefined as any);
-    jest.spyOn(fs.promises, "access").mockImplementation(async () => {
-      throw new Error("File does not exist");
-    });
-    jest.spyOn(fs.promises, "realpath").mockImplementation(async () => "/test-project");
+    // Queries and mutations should be generated
+    expect(getFile(writtenFiles, "authorsQuery.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "saveAuthorMutation.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "authorResolvers.ts")).toBeDefined();
 
-    try {
-      await plugin(
-        schema,
-        [],
-        {
-          contextType: "src/context#Context",
-          mappers: {
-            Author: "src/entities#Author",
-          },
-        },
-      );
-
-      // Queries and mutations should be generated
-      expect(getFile(writtenFiles, "authorsQuery.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "saveAuthorMutation.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "authorResolvers.ts")).toBeDefined();
-
-      // Check barrel files are in standard locations
-      expect(getFile(writtenFiles, "queries/index.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "mutations/index.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "objects/index.ts")).toBeDefined();
-    } finally {
-      jest.restoreAllMocks();
-    }
+    // Check barrel files are in standard locations
+    expect(getFile(writtenFiles, "queries/index.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "mutations/index.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "objects/index.ts")).toBeDefined();
   });
 
   it("organizes object resolvers by the file with most fields", async () => {
@@ -164,39 +117,18 @@ describe("Schema file organization", () => {
       }
     `);
 
-    const writtenFiles: Record<string, string> = {};
-
-    jest.spyOn(fs.promises, "writeFile").mockImplementation(async (filePath: any, content: any) => {
-      writtenFiles[filePath.toString()] = content.toString();
+    const writtenFiles = await runPlugin(schema, {
+      mappers: {
+        Author: "src/entities#Author",
+        Book: "src/entities#Book",
+      },
     });
 
-    jest.spyOn(fs.promises, "mkdir").mockImplementation(async () => undefined as any);
-    jest.spyOn(fs.promises, "access").mockImplementation(async () => {
-      throw new Error("File does not exist");
-    });
-    jest.spyOn(fs.promises, "realpath").mockImplementation(async () => "/test-project");
+    // Object resolvers should be generated
+    expect(getFile(writtenFiles, "authorResolvers.ts")).toBeDefined();
+    expect(getFile(writtenFiles, "bookResolvers.ts")).toBeDefined();
 
-    try {
-      await plugin(
-        schema,
-        [],
-        {
-          contextType: "src/context#Context",
-          mappers: {
-            Author: "src/entities#Author",
-            Book: "src/entities#Book",
-          },
-        },
-      );
-
-      // Object resolvers should be generated
-      expect(getFile(writtenFiles, "authorResolvers.ts")).toBeDefined();
-      expect(getFile(writtenFiles, "bookResolvers.ts")).toBeDefined();
-
-      // Objects barrel file should exist
-      expect(getFile(writtenFiles, "objects/index.ts")).toBeDefined();
-    } finally {
-      jest.restoreAllMocks();
-    }
+    // Objects barrel file should exist
+    expect(getFile(writtenFiles, "objects/index.ts")).toBeDefined();
   });
 });

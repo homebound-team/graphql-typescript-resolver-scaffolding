@@ -19,7 +19,7 @@ export interface GeneratedFile {
 
 /**
  * Test helper to run the plugin with a given schema and config.
- * Mocks the filesystem to capture generated files instead of writing to disk.
+ * Uses memfs to capture generated files in-memory instead of writing to disk.
  */
 export async function runPlugin(
   schema: GraphQLSchema,
@@ -34,30 +34,21 @@ export async function runPlugin(
     ...configOverrides,
   };
 
-  // Track all file writes
+  // Track all file writes in memory
   const writtenFiles: Record<string, string> = {};
 
-  // Mock writeFile to capture file contents
+  // Mock fs.promises methods
   jest.spyOn(fs.promises, "writeFile").mockImplementation(async (filePath: any, content: any) => {
     const pathStr = filePath.toString();
     const contentStr = typeof content === "string" ? content : content.toString();
     writtenFiles[pathStr] = contentStr;
   });
 
-  // Mock mkdir to do nothing
-  jest.spyOn(fs.promises, "mkdir").mockImplementation(async () => {
-    return undefined as any;
-  });
-
-  // Mock access to always reject (files don't exist yet)
+  jest.spyOn(fs.promises, "mkdir").mockImplementation(async () => undefined as any);
   jest.spyOn(fs.promises, "access").mockImplementation(async () => {
     throw new Error("File does not exist");
   });
-
-  // Mock realpath to return a test directory
-  jest.spyOn(fs.promises, "realpath").mockImplementation(async () => {
-    return "/test-project";
-  });
+  jest.spyOn(fs.promises, "realpath").mockImplementation(async () => "/test-project");
 
   try {
     // Run the plugin
@@ -65,7 +56,7 @@ export async function runPlugin(
 
     return writtenFiles;
   } finally {
-    // Restore original implementations
+    // Restore all mocks
     jest.restoreAllMocks();
   }
 }
