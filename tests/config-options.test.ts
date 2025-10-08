@@ -46,11 +46,6 @@ describe("Config options", () => {
 
     // Check that the objects barrel file only includes non-ignored types
     const barrelFile = getFile(files, "objects/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("Author");
-    expect(barrelFile).toContain("Book");
-    expect(barrelFile).not.toContain("AuthorEnumDetail");
-    expect(barrelFile).not.toContain("BookEnumDetail");
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { authorResolvers, bookResolvers } from "src/resolvers/GraphQL";
 
@@ -90,9 +85,14 @@ describe("Config options", () => {
 
     // Check that the objects barrel file includes both
     const barrelFile = getFile(files, "objects/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("Author");
-    expect(barrelFile).toContain("AuthorEnumDetail");
+    expect(barrelFile).toMatchInlineSnapshot(`
+      "import { authorResolvers, authorEnumDetailResolvers } from "src/resolvers/GraphQL";
+
+      // This file is auto-generated
+
+      export const objectResolvers = { Author: authorResolvers, AuthorEnumDetail: authorEnumDetailResolvers };
+      "
+    `);
   });
 
   it("supports different ignoreObjectsPattern patterns", async () => {
@@ -132,10 +132,14 @@ describe("Config options", () => {
 
     // Check the barrel file
     const barrelFile = getFile(files, "objects/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("Author");
-    expect(barrelFile).not.toContain("InternalAuthor");
-    expect(barrelFile).not.toContain("InternalBook");
+    expect(barrelFile).toMatchInlineSnapshot(`
+      "import { authorResolvers } from "src/resolvers/GraphQL";
+
+      // This file is auto-generated
+
+      export const objectResolvers = { Author: authorResolvers };
+      "
+    `);
   });
 
   it("uses custom contextType from config", async () => {
@@ -158,7 +162,6 @@ describe("Config options", () => {
 
     // The contextType is used in test file generation
     const testFile = getFile(files, "authorsQuery.test.ts");
-    expect(testFile).toBeDefined();
     // Note: The actual import statement would reference the custom context
     // but we can verify the file was generated
     expect(testFile).toMatchInlineSnapshot(`
@@ -215,10 +218,6 @@ describe("Config options", () => {
 
     // Check the objects barrel file includes all of them
     const barrelFile = getFile(files, "objects/index.ts");
-    expect(barrelFile).toBeDefined();
-    expect(barrelFile).toContain("Author");
-    expect(barrelFile).toContain("Book");
-    expect(barrelFile).toContain("User");
     expect(barrelFile).toMatchInlineSnapshot(`
       "import { authorResolvers, bookResolvers, userResolvers } from "src/resolvers/GraphQL";
 
