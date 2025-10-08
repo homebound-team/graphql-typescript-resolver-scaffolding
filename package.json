@@ -4,7 +4,7 @@
   "main": "./build/index.js",
   "types": "./build/",
   "scripts": {
-    "build": "rm -rf build; ./node_modules/.bin/tsc",
+    "build": "rm -rf build; tsc --project tsconfig.build.json",
     "prepare": "yarn build",
     "format": "prettier --write 'src/**/*.{ts,js,tsx,jsx,graphql}'",
     "test": "jest"
