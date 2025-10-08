@@ -33,7 +33,7 @@ describe("Mutation resolver scaffolding", () => {
 
     expect(files).toMatchInlineSnapshot(`
      {
-       "src/resolvers/mutations/index.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+       "src/resolvers/mutations/index.ts": "import type { MutationResolvers } from "src/generated/graphql-types";
      import { noInputMutation } from "src/resolvers/mutations/noInputMutationMutation";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
 
@@ -55,7 +55,7 @@ describe("Mutation resolver scaffolding", () => {
        return run(ctx, (ctx) => noInputMutation.noInputMutation({}, { input: inputFn() }, ctx, undefined!));
      }
      ",
-       "src/resolvers/mutations/noInputMutationMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+       "src/resolvers/mutations/noInputMutationMutation.ts": "import type { MutationResolvers } from "src/generated/graphql-types";
 
      export const noInputMutation: Pick<MutationResolvers, "noInputMutation"> = {
        async noInputMutation(root, args, ctx) {
@@ -64,7 +64,7 @@ describe("Mutation resolver scaffolding", () => {
      };
      ",
        "src/resolvers/mutations/saveAuthorMutation.test.ts": "import type { Context } from "src/context";
-     import { AuthorInput } from "src/generated/graphql-types";
+     import type { AuthorInput } from "src/generated/graphql-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
      import { run } from "src/resolvers/testUtils";
 
@@ -78,7 +78,7 @@ describe("Mutation resolver scaffolding", () => {
        return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
      }
      ",
-       "src/resolvers/mutations/saveAuthorMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+       "src/resolvers/mutations/saveAuthorMutation.ts": "import type { MutationResolvers } from "src/generated/graphql-types";
 
      export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
        async saveAuthor(root, args, ctx) {
@@ -92,7 +92,7 @@ describe("Mutation resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
@@ -117,7 +117,7 @@ describe("Mutation resolver scaffolding", () => {
        return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/dummyQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/dummyQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
 
      export const dummy: Pick<QueryResolvers, "dummy"> = {
        async dummy(root, args, ctx) {
@@ -125,7 +125,7 @@ describe("Mutation resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
      import { dummy } from "src/resolvers/queries/dummyQuery";
 
      // This file is auto-generated

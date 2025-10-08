@@ -36,7 +36,7 @@ describe("Subscription resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
@@ -47,7 +47,7 @@ describe("Subscription resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/bookResolvers.ts": "import type { BookResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const bookResolvers: BookResolvers = {};
@@ -73,7 +73,7 @@ describe("Subscription resolver scaffolding", () => {
        return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/dummyQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/dummyQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
 
      export const dummy: Pick<QueryResolvers, "dummy"> = {
        async dummy(root, args, ctx) {
@@ -81,7 +81,7 @@ describe("Subscription resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
      import { dummy } from "src/resolvers/queries/dummyQuery";
 
      // This file is auto-generated
@@ -102,7 +102,7 @@ describe("Subscription resolver scaffolding", () => {
        return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import type { SubscriptionResolvers } from "src/generated/graphql-types";
 
      export const AuthorSavedEvent = "AuthorSavedEvent";
 
@@ -117,7 +117,7 @@ describe("Subscription resolver scaffolding", () => {
      };
      ",
        "src/resolvers/subscriptions/bookSavedSubscription.test.ts": "import type { Context } from "src/context";
-     import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
+     import type { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
      import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
      import { run } from "src/resolvers/testUtils";
 
@@ -132,7 +132,7 @@ describe("Subscription resolver scaffolding", () => {
      }
      ",
        "src/resolvers/subscriptions/bookSavedSubscription.ts": "import { withFilter } from "graphql-subscriptions";
-     import { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types";
+     import type { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types";
 
      export const BookSavedEvent = "BookSavedEvent";
 
@@ -149,7 +149,7 @@ describe("Subscription resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+       "src/resolvers/subscriptions/index.ts": "import type { SubscriptionResolvers } from "src/generated/graphql-types";
      import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
      import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
 

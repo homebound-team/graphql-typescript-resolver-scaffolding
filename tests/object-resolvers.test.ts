@@ -32,7 +32,7 @@ describe("Object resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
@@ -43,7 +43,7 @@ describe("Object resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/bookResolvers.ts": "import type { BookResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const bookResolvers: BookResolvers = {};
@@ -69,7 +69,7 @@ describe("Object resolver scaffolding", () => {
        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/authorsQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
 
      export const authors: Pick<QueryResolvers, "authors"> = {
        async authors(root, args, ctx) {
@@ -77,7 +77,7 @@ describe("Object resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
      import { authors } from "src/resolvers/queries/authorsQuery";
 
      // This file is auto-generated

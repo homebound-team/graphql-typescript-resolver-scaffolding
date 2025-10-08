@@ -42,7 +42,7 @@ describe("Config options", () => {
 
     expect(files).toMatchInlineSnapshot(`
      {
-       "src/resolvers/mutations/index.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+       "src/resolvers/mutations/index.ts": "import type { MutationResolvers } from "src/generated/graphql-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
 
      // This file is auto-generated
@@ -50,7 +50,7 @@ describe("Config options", () => {
      export const mutationResolvers: MutationResolvers = { ...saveAuthor };
      ",
        "src/resolvers/mutations/saveAuthorMutation.test.ts": "import type { Context } from "src/context";
-     import { SaveAuthorInput } from "src/generated/graphql-types";
+     import type { SaveAuthorInput } from "src/generated/graphql-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
      import { run } from "src/resolvers/testUtils";
 
@@ -64,7 +64,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
      }
      ",
-       "src/resolvers/mutations/saveAuthorMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+       "src/resolvers/mutations/saveAuthorMutation.ts": "import type { MutationResolvers } from "src/generated/graphql-types";
 
      export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
        async saveAuthor(root, args, ctx) {
@@ -78,7 +78,7 @@ describe("Config options", () => {
        });
      });
      ",
-       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
@@ -89,7 +89,7 @@ describe("Config options", () => {
        });
      });
      ",
-       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/bookResolvers.ts": "import type { BookResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const bookResolvers: BookResolvers = {};
@@ -115,7 +115,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/authorsQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
 
      export const authors: Pick<QueryResolvers, "authors"> = {
        async authors(root, args, ctx) {
@@ -137,7 +137,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/booksQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/booksQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
 
      export const books: Pick<QueryResolvers, "books"> = {
        async books(root, args, ctx) {
@@ -145,7 +145,7 @@ describe("Config options", () => {
        },
      };
      ",
-       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
      import { authors } from "src/resolvers/queries/authorsQuery";
      import { books } from "src/resolvers/queries/booksQuery";
 
@@ -167,7 +167,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import type { SubscriptionResolvers } from "src/generated/graphql-types";
 
      export const AuthorSavedEvent = "AuthorSavedEvent";
 
@@ -181,7 +181,7 @@ describe("Config options", () => {
        },
      };
      ",
-       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+       "src/resolvers/subscriptions/index.ts": "import type { SubscriptionResolvers } from "src/generated/graphql-types";
      import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
 
      // This file is auto-generated
