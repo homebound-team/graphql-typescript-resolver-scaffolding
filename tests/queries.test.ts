@@ -111,4 +111,47 @@ describe("Query resolver scaffolding", () => {
      }
     `);
   });
+
+  it("does not overwrite existing query files", async () => {
+    const schema = createTestSchema(`
+      type Query {
+        authors(id: ID): [Author!]!
+        books: [Book!]!
+      }
+
+      type Author {
+        name: String!
+      }
+
+      type Book {
+        title: String!
+      }
+    `);
+
+    const existingContent = "// This is existing content that should not be overwritten";
+    const existingTestContent = "// This is existing test content that should not be overwritten";
+
+    const files = await runPlugin(
+      schema,
+      {
+        mappers: {
+          Author: "src/entities#Author",
+          Book: "src/entities#Book",
+        },
+      },
+      {
+        "src/resolvers/queries/authorsQuery.ts": existingContent,
+        "src/resolvers/queries/authorsQuery.test.ts": existingTestContent,
+      },
+    );
+
+    // Verify that the existing files were not overwritten
+    expect(files["src/resolvers/queries/authorsQuery.ts"]).toBe(existingContent);
+    expect(files["src/resolvers/queries/authorsQuery.test.ts"]).toBe(existingTestContent);
+
+    // Verify that the books query files were still created (since they didn't exist)
+    expect(files["src/resolvers/queries/booksQuery.ts"]).toBeDefined();
+    expect(files["src/resolvers/queries/booksQuery.ts"]).toContain("books");
+    expect(files["src/resolvers/queries/booksQuery.test.ts"]).toBeDefined();
+  });
 });

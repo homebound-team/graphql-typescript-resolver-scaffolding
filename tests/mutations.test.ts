@@ -135,4 +135,54 @@ describe("Mutation resolver scaffolding", () => {
      }
     `);
   });
+
+  it("does not overwrite existing mutation files", async () => {
+    const schema = createTestSchema(`
+      type Mutation {
+        saveAuthor(input: AuthorInput!): SaveAuthorResult!
+        noInputMutation: Boolean
+      }
+
+      input AuthorInput {
+        name: String
+      }
+
+      type SaveAuthorResult {
+        author: Author!
+      }
+
+      type Author {
+        name: String!
+      }
+
+      type Query {
+        dummy: String
+      }
+    `);
+
+    const existingContent = "// This is existing content that should not be overwritten";
+    const existingTestContent = "// This is existing test content that should not be overwritten";
+
+    const files = await runPlugin(
+      schema,
+      {
+        mappers: {
+          Author: "src/entities#Author",
+        },
+      },
+      {
+        "src/resolvers/mutations/saveAuthorMutation.ts": existingContent,
+        "src/resolvers/mutations/saveAuthorMutation.test.ts": existingTestContent,
+      },
+    );
+
+    // Verify that the existing files were not overwritten
+    expect(files["src/resolvers/mutations/saveAuthorMutation.ts"]).toBe(existingContent);
+    expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toBe(existingTestContent);
+
+    // Verify that the noInputMutation files were still created (since they didn't exist)
+    expect(files["src/resolvers/mutations/noInputMutationMutation.ts"]).toBeDefined();
+    expect(files["src/resolvers/mutations/noInputMutationMutation.ts"]).toContain("noInputMutation");
+    expect(files["src/resolvers/mutations/noInputMutationMutation.test.ts"]).toBeDefined();
+  });
 });

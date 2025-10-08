@@ -160,4 +160,51 @@ describe("Subscription resolver scaffolding", () => {
      }
     `);
   });
+
+  it("does not overwrite existing subscription files", async () => {
+    const schema = createTestSchema(`
+      type Subscription {
+        authorSaved: Author!
+        bookSaved(startsWith: String): Book
+      }
+
+      type Author {
+        name: String!
+      }
+
+      type Book {
+        title: String!
+      }
+
+      type Query {
+        dummy: String
+      }
+    `);
+
+    const existingContent = "// This is existing content that should not be overwritten";
+    const existingTestContent = "// This is existing test content that should not be overwritten";
+
+    const files = await runPlugin(
+      schema,
+      {
+        mappers: {
+          Author: "src/entities#Author",
+          Book: "src/entities#Book",
+        },
+      },
+      {
+        "src/resolvers/subscriptions/authorSavedSubscription.ts": existingContent,
+        "src/resolvers/subscriptions/authorSavedSubscription.test.ts": existingTestContent,
+      },
+    );
+
+    // Verify that the existing files were not overwritten
+    expect(files["src/resolvers/subscriptions/authorSavedSubscription.ts"]).toBe(existingContent);
+    expect(files["src/resolvers/subscriptions/authorSavedSubscription.test.ts"]).toBe(existingTestContent);
+
+    // Verify that the bookSaved subscription files were still created (since they didn't exist)
+    expect(files["src/resolvers/subscriptions/bookSavedSubscription.ts"]).toBeDefined();
+    expect(files["src/resolvers/subscriptions/bookSavedSubscription.ts"]).toContain("bookSaved");
+    expect(files["src/resolvers/subscriptions/bookSavedSubscription.test.ts"]).toBeDefined();
+  });
 });

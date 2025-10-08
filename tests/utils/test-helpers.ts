@@ -58,6 +58,7 @@ export interface GeneratedFile {
 export async function runPlugin(
   schema: GraphQLSchema,
   configOverrides: Partial<Config> = {},
+  preExistingFiles: Record<string, string> = {},
 ): Promise<Record<string, string>> {
   const defaultConfig: Config = {
     contextType: "src/context#Context",
@@ -69,6 +70,11 @@ export async function runPlugin(
   };
 
   try {
+    // Pre-populate the virtual filesystem with existing files
+    if (Object.keys(preExistingFiles).length > 0) {
+      vol.fromJSON(preExistingFiles);
+    }
+
     // Run the plugin
     await plugin(schema, [], config);
 

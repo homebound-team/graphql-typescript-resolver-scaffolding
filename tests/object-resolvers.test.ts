@@ -200,4 +200,47 @@ describe("Object resolver scaffolding", () => {
     expect(appleIndex).toBeLessThan(bananaIndex);
     expect(bananaIndex).toBeLessThan(zebraIndex);
   });
+
+  it("does not overwrite existing object resolver files", async () => {
+    const schema = createTestSchema(`
+      type Query {
+        authors: [Author!]!
+      }
+
+      type Author {
+        name: String!
+        books: [Book!]!
+      }
+
+      type Book {
+        title: String!
+      }
+    `);
+
+    const existingContent = "// This is existing content that should not be overwritten";
+    const existingTestContent = "// This is existing test content that should not be overwritten";
+
+    const files = await runPlugin(
+      schema,
+      {
+        mappers: {
+          Author: "src/entities#Author",
+          Book: "src/entities#Book",
+        },
+      },
+      {
+        "src/resolvers/objects/authorResolvers.ts": existingContent,
+        "src/resolvers/objects/authorResolvers.test.ts": existingTestContent,
+      },
+    );
+
+    // Verify that the existing files were not overwritten
+    expect(files["src/resolvers/objects/authorResolvers.ts"]).toBe(existingContent);
+    expect(files["src/resolvers/objects/authorResolvers.test.ts"]).toBe(existingTestContent);
+
+    // Verify that the book resolver files were still created (since they didn't exist)
+    expect(files["src/resolvers/objects/bookResolvers.ts"]).toBeDefined();
+    expect(files["src/resolvers/objects/bookResolvers.ts"]).toContain("bookResolvers");
+    expect(files["src/resolvers/objects/bookResolvers.test.ts"]).toBeDefined();
+  });
 });
