@@ -86,12 +86,12 @@ describe("Config options", () => {
     // Check that the objects barrel file includes both
     const barrelFile = getFile(files, "objects/index.ts");
     expect(barrelFile).toMatchInlineSnapshot(`
-      "import { authorResolvers, authorEnumDetailResolvers } from "src/resolvers/GraphQL";
+     "import { authorEnumDetailResolvers, authorResolvers } from "src/resolvers/GraphQL";
 
-      // This file is auto-generated
+     // This file is auto-generated
 
-      export const objectResolvers = { Author: authorResolvers, AuthorEnumDetail: authorEnumDetailResolvers };
-      "
+     export const objectResolvers = { Author: authorResolvers, AuthorEnumDetail: authorEnumDetailResolvers };
+     "
     `);
   });
 

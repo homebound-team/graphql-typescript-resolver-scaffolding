@@ -1,6 +1,39 @@
 import { buildSchema, GraphQLSchema } from "graphql";
+import { vol } from "memfs";
 import { plugin, Config } from "../../src/index";
-import * as fs from "fs";
+
+jest.mock("fs", () => {
+  const { fs } = require("memfs");
+  const path = require("path");
+
+  return {
+    ...fs,
+    promises: {
+      writeFile: async (filePath: string, content: any, options?: any) => {
+        // Ensure directory exists before writing
+        const dir = path.dirname(filePath);
+        try {
+          await fs.promises.mkdir(dir, { recursive: true });
+        } catch (e) {
+          // Ignore errors if directory already exists
+        }
+        return fs.promises.writeFile(filePath, content, options);
+      },
+      mkdir: fs.promises.mkdir.bind(fs.promises),
+      access: fs.promises.access.bind(fs.promises),
+      readFile: fs.promises.readFile.bind(fs.promises),
+      readdir: fs.promises.readdir.bind(fs.promises),
+      stat: fs.promises.stat.bind(fs.promises),
+      realpath: async (path: string) => {
+        // For tests, return the root directory for "."
+        if (path === "." || path === "./") {
+          return "/";
+        }
+        return path;
+      },
+    },
+  };
+});
 
 /**
  * Test helper to create a GraphQL schema from SDL string
@@ -34,30 +67,24 @@ export async function runPlugin(
     ...configOverrides,
   };
 
-  // Track all file writes in memory
-  const writtenFiles: Record<string, string> = {};
-
-  // Mock fs.promises methods
-  jest.spyOn(fs.promises, "writeFile").mockImplementation(async (filePath: any, content: any) => {
-    const pathStr = filePath.toString();
-    const contentStr = typeof content === "string" ? content : content.toString();
-    writtenFiles[pathStr] = contentStr;
-  });
-
-  jest.spyOn(fs.promises, "mkdir").mockImplementation(async () => undefined as any);
-  jest.spyOn(fs.promises, "access").mockImplementation(async () => {
-    throw new Error("File does not exist");
-  });
-  jest.spyOn(fs.promises, "realpath").mockImplementation(async () => "/test-project");
-
   try {
     // Run the plugin
     await plugin(schema, [], config);
 
+    // Capture all files written to the virtual filesystem
+    const allFiles = vol.toJSON();
+    const writtenFiles: Record<string, string> = {};
+    for (const [path, content] of Object.entries(allFiles)) {
+      if (content !== null) {
+        const contentStr = typeof content === "string" ? content : (content as Buffer).toString();
+        writtenFiles[path] = contentStr;
+      }
+    }
+
     return writtenFiles;
   } finally {
-    // Restore all mocks
-    jest.restoreAllMocks();
+    // Clean up the virtual filesystem
+    vol.reset();
   }
 }
 
