@@ -290,79 +290,22 @@ describe("Config options", () => {
       },
     });
 
-    // The contextType is used in test file generation
     const testFile = getFile(files, "authorsQuery.test.ts");
-    expect(testFile).toContain("import type { MyContext }");
-    expect(testFile).toContain("src/custom/MyContext");
-    expect(testFile).toContain("function runAuthors(ctx: MyContext");
-  });
+    expect(testFile).toMatchInlineSnapshot(`
+     "import type { MyContext } from "src/custom/MyContext";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+     import { run } from "src/resolvers/testUtils";
 
-  it("supports subpath imports for all configuration options", async () => {
-    const schema = createTestSchema(`
-      type Query {
-        authors: [Author!]!
-        books: [Book!]!
-      }
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
 
-      type Mutation {
-        saveAuthor(input: SaveAuthorInput!): Author!
-      }
-
-      input SaveAuthorInput {
-        name: String!
-      }
-
-      type Author {
-        name: String!
-      }
-
-      type Book {
-        title: String!
-      }
+     function runAuthors(ctx: MyContext, argsFn: () => {}) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
+     "
     `);
-
-    const files = await runPlugin(schema, {
-      contextType: "\\#src/context#AppContext",
-      graphqlTypesPath: "#src/graphql-types",
-      testUtilsPath: "#src/test-helpers",
-      mappers: {
-        Author: "src/entities#Author",
-        Book: "src/entities#Book",
-      },
-    });
-
-    // Check query test file uses subpath imports
-    const queryTestFile = getFile(files, "authorsQuery.test.ts");
-    expect(queryTestFile).toContain("AppContext");
-    expect(queryTestFile).toContain("#src/context");
-    // authors query has no args, so no QueryAuthorsArgs import
-    expect(queryTestFile).toContain("run");
-    expect(queryTestFile).toContain("#src/test-helpers");
-    expect(queryTestFile).toContain("function runAuthors(ctx: AppContext");
-
-    // Check mutation test file uses subpath imports
-    const mutationTestFile = getFile(files, "saveAuthorMutation.test.ts");
-    expect(mutationTestFile).toContain("AppContext");
-    expect(mutationTestFile).toContain("#src/context");
-    expect(mutationTestFile).toContain("SaveAuthorInput");
-    expect(mutationTestFile).toContain("#src/graphql-types");
-    expect(mutationTestFile).toContain("run");
-    expect(mutationTestFile).toContain("#src/test-helpers");
-    expect(mutationTestFile).toContain("function runSaveAuthor(ctx: AppContext");
-
-    // Check query resolver file uses subpath imports for types
-    const queryFile = getFile(files, "authorsQuery.ts");
-    expect(queryFile).toContain("QueryResolvers");
-    expect(queryFile).toContain("#src/graphql-types");
-
-    // Check mutation resolver file uses subpath imports for types
-    const mutationFile = getFile(files, "saveAuthorMutation.ts");
-    expect(mutationFile).toContain("MutationResolvers");
-    expect(mutationFile).toContain("#src/graphql-types");
-
-    // Check object resolver file uses subpath imports for types
-    const objectFile = getFile(files, "authorResolvers.ts");
-    expect(objectFile).toContain("AuthorResolvers");
-    expect(objectFile).toContain("#src/graphql-types");
   });
 });

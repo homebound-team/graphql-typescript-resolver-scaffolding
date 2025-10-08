@@ -20,8 +20,7 @@ const fileNamesConsideredTopLevel = [
   "root.graphql",
 ];
 
-/** Internal context passed to scaffolding functions */
-interface ScaffoldingContext {
+interface PluginContext {
   tsPoetConfig: ToStringOpts;
   graphqlTypesPath: string;
   QueryResolvers: Import;
@@ -31,28 +30,20 @@ interface ScaffoldingContext {
   run: Import;
 }
 
-/** Helper to build mapper spec - escape # for subpath imports */
-function buildSpec(path: string, exportName: string): string {
-  // If path starts with #, it's a subpath import and needs to be escaped
-  const escapedPath = path.startsWith("#") ? `\\${path}` : path;
-  return `${escapedPath}#${exportName}`;
-}
-
 /**
- * Given a schema, generates the top-level Query/Mutation/Object resovlers by stitching
+ * Given a schema, generates the top-level Query/Mutation/Object resolvers by stitching
  * together the respective individual resolvers at expected locations.
  *
  * We also put scaffolding in each "expected location" place to help engineers
  * know where to put things.
  */
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
-  const { emitLegacyCommonJSImports = true } = config;
-
-  // Create scaffolding context with all internal config
-  const graphqlTypesPath = config.graphqlTypesPath || "src/generated/graphql-types";
-  const testUtilsPath = config.testUtilsPath || "src/resolvers/testUtils";
-
-  const ctx: ScaffoldingContext = {
+  const {
+    emitLegacyCommonJSImports = true,
+    graphqlTypesPath = "src/generated/graphql-types",
+    testUtilsPath = "src/resolvers/testUtils",
+  } = config;
+  const ctx: PluginContext = {
     tsPoetConfig: {
       importExtensions: emitLegacyCommonJSImports ? false : "js",
     },
@@ -121,7 +112,7 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 };
 
 /** Given the `Query` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateQueryScaffolding(ctx: ScaffoldingContext, query: GraphQLObjectType): Promise<Import[]> {
+async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
   // Loop over every `Query.foo` field
@@ -175,7 +166,7 @@ async function generateQueryScaffolding(ctx: ScaffoldingContext, query: GraphQLO
 }
 
 /** Given the `Mutation` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateMutationScaffolding(ctx: ScaffoldingContext, mutation: GraphQLObjectType): Promise<Import[]> {
+async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(mutation.getFields()).map(async (field) => {
@@ -229,10 +220,7 @@ async function generateMutationScaffolding(ctx: ScaffoldingContext, mutation: Gr
 }
 
 /** Given the `Subscription` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateSubscriptionScaffolding(
-  ctx: ScaffoldingContext,
-  subscription: GraphQLObjectType,
-): Promise<Import[]> {
+async function generateSubscriptionScaffolding(ctx: PluginContext, subscription: GraphQLObjectType): Promise<Import[]> {
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(subscription.getFields()).map(async (field) => {
@@ -311,7 +299,7 @@ async function generateSubscriptionScaffolding(
 }
 
 /** Given the (mapped) `Object` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
-async function generateObjectScaffolding(ctx: ScaffoldingContext, object: GraphQLObjectType): Promise<Import> {
+async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObjectType): Promise<Import> {
   const cwd = await fs.realpath(".");
 
   const name = camelCase(object.name);
@@ -556,4 +544,10 @@ function sortObject<T extends object>(obj: T): T {
 
 function isGraphQLObjectType(o: any): o is GraphQLObjectType {
   return o instanceof GraphQLObjectType;
+}
+
+function buildSpec(path: string, exportName: string): string {
+  // If path starts with #, it's a subpath import and needs to be escaped
+  const escapedPath = path.startsWith("#") ? `\\${path}` : path;
+  return `${escapedPath}#${exportName}`;
 }
