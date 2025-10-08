@@ -4,10 +4,10 @@
   "main": "./build/index.js",
   "types": "./build/",
   "scripts": {
-    "build": "rm -rf build; ./node_modules/.bin/tsc",
+    "build": "rm -rf build; tsc --project tsconfig.build.json",
     "prepare": "yarn build",
     "format": "prettier --write 'src/**/*.{ts,js,tsx,jsx,graphql}'",
-    "graphql-codegen": "(cd integration && rm -fr src/resolvers/objects && rm -fr src/resolvers/mutations && rm -fr src/resolvers/queries && rm -fr src/resolvers/subscriptions && rm -fr src/resolvers/books && graphql-codegen --config graphql-codegen.yml && ../node_modules/.bin/tsc)"
+    "test": "jest"
   },
   "dependencies": {
     "@graphql-codegen/plugin-helpers": "^5.0.1",
@@ -21,13 +21,16 @@
     "graphql": "^16.8.1",
     "graphql-subscriptions": "^2.0.0",
     "husky": "^4.2.5",
-    "prettier": "^3.0.3",
-    "typescript": "^5.2.2"
+    "jest": "^30.2.0",
+    "memfs": "^4.49.0",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.4",
+    "typescript": "^5.9.3"
   },
   "husky": {
     "hooks": {
       "pre-commit": "yarn format"
     }
   },
-  "packageManager": "yarn@3.6.3"
+  "packageManager": "yarn@4.10.3"
 }

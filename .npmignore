@@ -1,3 +1,6 @@
 /src
 /.idea
 /.circleci
+/.husky
+/.prettierrc.js
+/jest.config.js
