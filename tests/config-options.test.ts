@@ -42,17 +42,17 @@ describe("Config options", () => {
 
     expect(files).toMatchInlineSnapshot(`
      {
-       "src/resolvers/mutations/index.ts": "import { MutationResolvers } from "src/generated/graphql-types";
-     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+       "src/resolvers/mutations/index.ts": "import { MutationResolvers } from "src/generated/graphql-types.ts";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation.ts";
 
      // This file is auto-generated
 
      export const mutationResolvers: MutationResolvers = { ...saveAuthor };
      ",
-       "src/resolvers/mutations/saveAuthorMutation.test.ts": "import { Context } from "src/context";
-     import { SaveAuthorInput } from "src/generated/graphql-types";
-     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/mutations/saveAuthorMutation.test.ts": "import type { Context } from "src/context.ts";
+     import { SaveAuthorInput } from "src/generated/graphql-types.ts";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("saveAuthor", () => {
        it("handles this business case", () => {
@@ -64,7 +64,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
      }
      ",
-       "src/resolvers/mutations/saveAuthorMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types";
+       "src/resolvers/mutations/saveAuthorMutation.ts": "import { MutationResolvers } from "src/generated/graphql-types.ts";
 
      export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
        async saveAuthor(root, args, ctx) {
@@ -78,7 +78,7 @@ describe("Config options", () => {
        });
      });
      ",
-       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types.ts";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
@@ -89,21 +89,21 @@ describe("Config options", () => {
        });
      });
      ",
-       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types.ts";
 
      // @ts-ignore not implemented
      export const bookResolvers: BookResolvers = {};
      ",
-       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
-     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers.ts";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers.ts";
 
      // This file is auto-generated
 
      export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
      ",
-       "src/resolvers/queries/authorsQuery.test.ts": "import { Context } from "src/context";
-     import { authors } from "src/resolvers/queries/authorsQuery";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/queries/authorsQuery.test.ts": "import type { Context } from "src/context.ts";
+     import { authors } from "src/resolvers/queries/authorsQuery.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("authors", () => {
        it("handles this business case", () => {
@@ -115,7 +115,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/authorsQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/authorsQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types.ts";
 
      export const authors: Pick<QueryResolvers, "authors"> = {
        async authors(root, args, ctx) {
@@ -123,9 +123,9 @@ describe("Config options", () => {
        },
      };
      ",
-       "src/resolvers/queries/booksQuery.test.ts": "import { Context } from "src/context";
-     import { books } from "src/resolvers/queries/booksQuery";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/queries/booksQuery.test.ts": "import type { Context } from "src/context.ts";
+     import { books } from "src/resolvers/queries/booksQuery.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("books", () => {
        it("handles this business case", () => {
@@ -137,7 +137,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/booksQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/booksQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types.ts";
 
      export const books: Pick<QueryResolvers, "books"> = {
        async books(root, args, ctx) {
@@ -145,17 +145,17 @@ describe("Config options", () => {
        },
      };
      ",
-       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
-     import { authors } from "src/resolvers/queries/authorsQuery";
-     import { books } from "src/resolvers/queries/booksQuery";
+       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types.ts";
+     import { authors } from "src/resolvers/queries/authorsQuery.ts";
+     import { books } from "src/resolvers/queries/booksQuery.ts";
 
      // This file is auto-generated
 
      export const queryResolvers: QueryResolvers = { ...authors, ...books };
      ",
-       "src/resolvers/subscriptions/authorSavedSubscription.test.ts": "import { Context } from "src/context";
-     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/subscriptions/authorSavedSubscription.test.ts": "import type { Context } from "src/context.ts";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("authorSaved", () => {
        it("handles this business case", () => {
@@ -167,7 +167,7 @@ describe("Config options", () => {
        return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types.ts";
 
      export const AuthorSavedEvent = "AuthorSavedEvent";
 
@@ -181,8 +181,8 @@ describe("Config options", () => {
        },
      };
      ",
-       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
-     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
+       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types.ts";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription.ts";
 
      // This file is auto-generated
 

@@ -36,7 +36,7 @@ describe("Subscription resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/authorResolvers.ts": "import { AuthorResolvers } from "src/generated/graphql-types.ts";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
@@ -47,21 +47,21 @@ describe("Subscription resolver scaffolding", () => {
        });
      });
      ",
-       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types";
+       "src/resolvers/objects/bookResolvers.ts": "import { BookResolvers } from "src/generated/graphql-types.ts";
 
      // @ts-ignore not implemented
      export const bookResolvers: BookResolvers = {};
      ",
-       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
-     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers.ts";
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers.ts";
 
      // This file is auto-generated
 
      export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
      ",
-       "src/resolvers/queries/dummyQuery.test.ts": "import { Context } from "src/context";
-     import { dummy } from "src/resolvers/queries/dummyQuery";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/queries/dummyQuery.test.ts": "import type { Context } from "src/context.ts";
+     import { dummy } from "src/resolvers/queries/dummyQuery.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("dummy", () => {
        it("handles this business case", () => {
@@ -73,7 +73,7 @@ describe("Subscription resolver scaffolding", () => {
        return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/queries/dummyQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types";
+       "src/resolvers/queries/dummyQuery.ts": "import { QueryResolvers } from "src/generated/graphql-types.ts";
 
      export const dummy: Pick<QueryResolvers, "dummy"> = {
        async dummy(root, args, ctx) {
@@ -81,16 +81,16 @@ describe("Subscription resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types";
-     import { dummy } from "src/resolvers/queries/dummyQuery";
+       "src/resolvers/queries/index.ts": "import { QueryResolvers } from "src/generated/graphql-types.ts";
+     import { dummy } from "src/resolvers/queries/dummyQuery.ts";
 
      // This file is auto-generated
 
      export const queryResolvers: QueryResolvers = { ...dummy };
      ",
-       "src/resolvers/subscriptions/authorSavedSubscription.test.ts": "import { Context } from "src/context";
-     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/subscriptions/authorSavedSubscription.test.ts": "import type { Context } from "src/context.ts";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("authorSaved", () => {
        it("handles this business case", () => {
@@ -102,7 +102,7 @@ describe("Subscription resolver scaffolding", () => {
        return run(ctx, (ctx) => authorSaved.authorSaved.subscribe(undefined, argsFn(), ctx, undefined!));
      }
      ",
-       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
+       "src/resolvers/subscriptions/authorSavedSubscription.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types.ts";
 
      export const AuthorSavedEvent = "AuthorSavedEvent";
 
@@ -116,10 +116,10 @@ describe("Subscription resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/subscriptions/bookSavedSubscription.test.ts": "import { Context } from "src/context";
-     import { SubscriptionBookSavedArgs } from "src/generated/graphql-types";
-     import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
-     import { run } from "src/resolvers/testUtils";
+       "src/resolvers/subscriptions/bookSavedSubscription.test.ts": "import type { Context } from "src/context.ts";
+     import { SubscriptionBookSavedArgs } from "src/generated/graphql-types.ts";
+     import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription.ts";
+     import { run } from "src/resolvers/testUtils.ts";
 
      describe("bookSaved", () => {
        it("handles this business case", () => {
@@ -132,7 +132,7 @@ describe("Subscription resolver scaffolding", () => {
      }
      ",
        "src/resolvers/subscriptions/bookSavedSubscription.ts": "import { withFilter } from "graphql-subscriptions";
-     import { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types";
+     import { SubscriptionBookSavedArgs, SubscriptionResolvers } from "src/generated/graphql-types.ts";
 
      export const BookSavedEvent = "BookSavedEvent";
 
@@ -149,9 +149,9 @@ describe("Subscription resolver scaffolding", () => {
        },
      };
      ",
-       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types";
-     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription";
-     import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription";
+       "src/resolvers/subscriptions/index.ts": "import { SubscriptionResolvers } from "src/generated/graphql-types.ts";
+     import { authorSaved } from "src/resolvers/subscriptions/authorSavedSubscription.ts";
+     import { bookSaved } from "src/resolvers/subscriptions/bookSavedSubscription.ts";
 
      // This file is auto-generated
 
