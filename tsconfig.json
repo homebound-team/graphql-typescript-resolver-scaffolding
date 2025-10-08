@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "outDir": "build",
     "sourceMap": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "includes": ["src"],
   "exclude": ["integration"]

@@ -41,6 +41,7 @@ jobs:
     working_directory: ~/project
     steps:
       - bootstrap
+      - run: yarn test
       - run: yarn build
       - when:
           condition: <<parameters.publish>>
