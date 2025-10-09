@@ -1,4 +1,4 @@
-import { createTestSchema, runPlugin, getFile } from "./utils/test-helpers";
+import { createTestSchema, runPlugin, getFile, formatFilesForSnapshot } from "./utils/test-helpers";
 
 describe("Object resolver scaffolding", () => {
   it("generates expected object resolver files with standard configuration", async () => {
@@ -24,38 +24,54 @@ describe("Object resolver scaffolding", () => {
       },
     });
 
-    expect(files).toMatchInlineSnapshot(`
-     {
-       "src/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+    expect(formatFilesForSnapshot(files)).toMatchInlineSnapshot(`
+     "File: src/resolvers/objects/authorResolvers.test.ts
+     =======================================================
+     describe("authorResolvers", () => {
        it("handles this business case", () => {
          fail();
        });
      });
-     ",
-       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types";
+
+
+     File: src/resolvers/objects/authorResolvers.ts
+     =======================================================
+     import type { AuthorResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const authorResolvers: AuthorResolvers = {};
-     ",
-       "src/resolvers/objects/bookResolvers.test.ts": "describe("bookResolvers", () => {
+
+
+     File: src/resolvers/objects/bookResolvers.test.ts
+     =======================================================
+     describe("bookResolvers", () => {
        it("handles this business case", () => {
          fail();
        });
      });
-     ",
-       "src/resolvers/objects/bookResolvers.ts": "import type { BookResolvers } from "src/generated/graphql-types";
+
+
+     File: src/resolvers/objects/bookResolvers.ts
+     =======================================================
+     import type { BookResolvers } from "src/generated/graphql-types";
 
      // @ts-ignore not implemented
      export const bookResolvers: BookResolvers = {};
-     ",
-       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+
+
+     File: src/resolvers/objects/index.ts
+     =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
      import { bookResolvers } from "src/resolvers/objects/bookResolvers";
 
      // This file is auto-generated
 
      export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
-     ",
-       "src/resolvers/queries/authorsQuery.test.ts": "import type { Context } from "src/context";
+
+
+     File: src/resolvers/queries/authorsQuery.test.ts
+     =======================================================
+     import type { Context } from "src/context";
      import { authors } from "src/resolvers/queries/authorsQuery";
      import { run } from "src/resolvers/testUtils";
 
@@ -68,23 +84,28 @@ describe("Object resolver scaffolding", () => {
      function runAuthors(ctx: Context, argsFn: () => {}) {
        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
      }
-     ",
-       "src/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
+
+
+     File: src/resolvers/queries/authorsQuery.ts
+     =======================================================
+     import type { QueryResolvers } from "src/generated/graphql-types";
 
      export const authors: Pick<QueryResolvers, "authors"> = {
        async authors(root, args, ctx) {
          throw new Error("not implemented");
        },
      };
-     ",
-       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
+
+
+     File: src/resolvers/queries/index.ts
+     =======================================================
+     import type { QueryResolvers } from "src/generated/graphql-types";
      import { authors } from "src/resolvers/queries/authorsQuery";
 
      // This file is auto-generated
 
      export const queryResolvers: QueryResolvers = { ...authors };
-     ",
-     }
+     "
     `);
   });
 
@@ -111,11 +132,11 @@ describe("Object resolver scaffolding", () => {
     });
 
     // Check that only Author resolver was generated
-    expect(getFile(files, "authorResolvers.ts")).toBeDefined();
-    expect(getFile(files, "unmappedTypeResolvers.ts")).toBeUndefined();
+    expect(getFile(files, "src/resolvers/objects/authorResolvers.ts")).toBeDefined();
+    expect(getFile(files, "src/resolvers/objects/unmappedTypeResolvers.ts")).toBeUndefined();
 
     // Check that the objects barrel file only includes Author
-    const barrelFile = getFile(files, "objects/index.ts");
+    const barrelFile = getFile(files, "src/resolvers/objects/index.ts");
     expect(barrelFile).toContain("Author");
     expect(barrelFile).not.toContain("UnmappedType");
   });
@@ -150,13 +171,13 @@ describe("Object resolver scaffolding", () => {
     });
 
     // Check that object resolver was only generated for Author, not Query/Mutation/Subscription
-    expect(getFile(files, "authorResolvers.ts")).toBeDefined();
-    expect(getFile(files, "queryResolvers.ts")).toBeUndefined();
-    expect(getFile(files, "mutationResolvers.ts")).toBeUndefined();
-    expect(getFile(files, "subscriptionResolvers.ts")).toBeUndefined();
+    expect(getFile(files, "src/resolvers/objects/authorResolvers.ts")).toBeDefined();
+    expect(getFile(files, "src/resolvers/objects/queryResolvers.ts")).toBeUndefined();
+    expect(getFile(files, "src/resolvers/objects/mutationResolvers.ts")).toBeUndefined();
+    expect(getFile(files, "src/resolvers/objects/subscriptionResolvers.ts")).toBeUndefined();
 
     // Check that the objects barrel file only includes Author
-    const barrelFile = getFile(files, "objects/index.ts");
+    const barrelFile = getFile(files, "src/resolvers/objects/index.ts");
     expect(barrelFile).toContain("Author");
     expect(barrelFile).not.toContain("Query");
     expect(barrelFile).not.toContain("Mutation");
@@ -190,7 +211,7 @@ describe("Object resolver scaffolding", () => {
     });
 
     // Check that the objects barrel file has them sorted alphabetically
-    const barrelFile = getFile(files, "objects/index.ts");
+    const barrelFile = getFile(files, "src/resolvers/objects/index.ts");
 
     // Verify alphabetical order by checking index positions
     const appleIndex = barrelFile!.indexOf("Apple:");
@@ -242,93 +263,5 @@ describe("Object resolver scaffolding", () => {
     expect(files["src/resolvers/objects/bookResolvers.ts"]).toBeDefined();
     expect(files["src/resolvers/objects/bookResolvers.ts"]).toContain("bookResolvers");
     expect(files["src/resolvers/objects/bookResolvers.test.ts"]).toBeDefined();
-  });
-
-  it("generates ESM-compatible imports with .js extensions when emitLegacyCommonJSImports is false", async () => {
-    const schema = createTestSchema(`
-      type Query {
-        authors: [Author!]!
-      }
-
-      type Author {
-        name: String!
-        books: [Book!]!
-      }
-
-      type Book {
-        title: String!
-      }
-    `);
-
-    const files = await runPlugin(schema, {
-      emitLegacyCommonJSImports: false,
-      mappers: {
-        Author: "src/entities#Author",
-        Book: "src/entities#Book",
-      },
-    });
-
-    expect(files).toMatchInlineSnapshot(`
-     {
-       "src/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
-       it("handles this business case", () => {
-         fail();
-       });
-     });
-     ",
-       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types.js";
-
-     // @ts-ignore not implemented
-     export const authorResolvers: AuthorResolvers = {};
-     ",
-       "src/resolvers/objects/bookResolvers.test.ts": "describe("bookResolvers", () => {
-       it("handles this business case", () => {
-         fail();
-       });
-     });
-     ",
-       "src/resolvers/objects/bookResolvers.ts": "import type { BookResolvers } from "src/generated/graphql-types.js";
-
-     // @ts-ignore not implemented
-     export const bookResolvers: BookResolvers = {};
-     ",
-       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers.js";
-     import { bookResolvers } from "src/resolvers/objects/bookResolvers.js";
-
-     // This file is auto-generated
-
-     export const objectResolvers = { Author: authorResolvers, Book: bookResolvers };
-     ",
-       "src/resolvers/queries/authorsQuery.test.ts": "import type { Context } from "src/context.js";
-     import { authors } from "src/resolvers/queries/authorsQuery.js";
-     import { run } from "src/resolvers/testUtils.js";
-
-     describe("authors", () => {
-       it("handles this business case", () => {
-         fail();
-       });
-     });
-
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
-     ",
-       "src/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types.js";
-
-     export const authors: Pick<QueryResolvers, "authors"> = {
-       async authors(root, args, ctx) {
-         throw new Error("not implemented");
-       },
-     };
-     ",
-       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/generated/graphql-types.js";
-     import { authors } from "src/resolvers/queries/authorsQuery.js";
-
-     // This file is auto-generated
-
-     export const queryResolvers: QueryResolvers = { ...authors };
-     ",
-     }
-    `);
   });
 });

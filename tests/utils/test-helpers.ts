@@ -101,25 +101,19 @@ export async function runPlugin(
  * Helper to get a specific file from the generated files
  */
 export function getFile(files: Record<string, string>, filename: string): string | undefined {
-  // Try exact match first
-  if (files[filename]) {
-    return files[filename];
-  }
-
-  // Try to find by relative path or filename
-  const matchingKey = Object.keys(files).find((key) => key.endsWith(filename) || key.includes(filename));
-  return matchingKey ? files[matchingKey] : undefined;
+  return files[filename];
 }
 
 /**
- * Helper to normalize file paths in snapshots (replace absolute paths with relative)
+ * Formats the files object into a readable string for snapshot testing.
+ * Each file is separated by a header with the file path and a separator line.
  */
-export function normalizeFilePaths(files: Record<string, string>): Record<string, string> {
-  const normalized: Record<string, string> = {};
-  for (const [filePath, content] of Object.entries(files)) {
-    // Remove the base directory prefix to make paths relative
-    const relativePath = filePath.replace(/^src\/resolvers\//, "");
-    normalized[relativePath] = content;
-  }
-  return normalized;
+export function formatFilesForSnapshot(files: Record<string, string>): string {
+  const sortedFiles = Object.entries(files).sort(([pathA], [pathB]) => pathA.localeCompare(pathB));
+
+  return sortedFiles
+    .map(([path, content]) => {
+      return `File: ${path}\n${"=".repeat(55)}\n${content}`;
+    })
+    .join("\n\n");
 }
