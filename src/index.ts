@@ -145,7 +145,7 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
 
     const newFile = await writeIfNew(
       ctx,
-      `${toFilesystemPath(modulePath)}.ts`,
+      `${normalizePath(modulePath)}.ts`,
       code`
         export const ${name}: Pick<${QueryResolvers}, "${name}"> = {
           async ${name}(root, args, ctx) {
@@ -157,7 +157,7 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
     if (newFile) {
       await writeIfNew(
         ctx,
-        `${toFilesystemPath(modulePath)}.test.ts`,
+        `${normalizePath(modulePath)}.test.ts`,
         code`
           describe("${name}", () => {
             it("handles this business case", () => {
@@ -206,7 +206,7 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
 
     const newFile = await writeIfNew(
       ctx,
-      `${toFilesystemPath(modulePath)}.ts`,
+      `${normalizePath(modulePath)}.ts`,
       code`
         export const ${name}: Pick<${MutationResolvers}, "${name}"> = {
           async ${name}(root, args, ctx) {
@@ -219,7 +219,7 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
     if (newFile) {
       await writeIfNew(
         ctx,
-        `${toFilesystemPath(modulePath)}.test.ts`,
+        `${normalizePath(modulePath)}.test.ts`,
         code`
         describe("${name}", () => {
           it("handles this business case", () => {
@@ -314,9 +314,9 @@ async function generateSubscriptionScaffolding(ctx: PluginContext, subscription:
       }
     `;
 
-    const newFile = await writeIfNew(ctx, `${toFilesystemPath(modulePath)}.ts`, code`${resolverContents}`);
+    const newFile = await writeIfNew(ctx, `${normalizePath(modulePath)}.ts`, code`${resolverContents}`);
     if (newFile) {
-      await writeIfNew(ctx, `${toFilesystemPath(modulePath)}.test.ts`, testContents);
+      await writeIfNew(ctx, `${normalizePath(modulePath)}.test.ts`, testContents);
     }
 
     return resolverConst;
@@ -341,7 +341,7 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
 
   const newFile = await writeIfNew(
     ctx,
-    `${toFilesystemPath(modulePath)}.ts`,
+    `${normalizePath(modulePath)}.ts`,
     code`
         // @ts-ignore not implemented
         export const ${name}Resolvers: ${resolverType} = {
@@ -351,7 +351,7 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
   if (newFile) {
     await writeIfNew(
       ctx,
-      `${toFilesystemPath(modulePath)}.test.ts`,
+      `${normalizePath(modulePath)}.test.ts`,
       code`
         describe("${name}Resolvers", () => {
           it("handles this business case", () => {
@@ -382,7 +382,7 @@ async function writeBarrelFile(
     }
   `;
   await fs.writeFile(
-    join(toFilesystemPath(resolversPath), filePath),
+    join(normalizePath(resolversPath), filePath),
     contents.toString({ path: filePath, ...tsPoetConfig }),
   );
 }
@@ -403,7 +403,7 @@ async function writeObjectBarrelFile(
     }
   `;
   await fs.writeFile(
-    join(toFilesystemPath(resolversPath), filePath),
+    join(normalizePath(resolversPath), filePath),
     contents.toString({ path: filePath, ...tsPoetConfig }),
   );
 }
@@ -641,13 +641,12 @@ function buildSpec(path: string, exportName: string): string {
 }
 
 /**
- * Converts a potentially subpath-import path to a filesystem path by stripping the leading #
- * or escaped leading \\#.
+ * Normalizes a path by stripping the leading # or escaped leading \\# from subpath imports.
  *
  * Validates that the resulting path is relative and does not attempt to traverse outside
  * the project directory.
  */
-function toFilesystemPath(path: string): string {
+function normalizePath(path: string): string {
   // Strip leading # or \#
   let normalizedPath = path;
   if (normalizedPath.startsWith("\\#")) {
