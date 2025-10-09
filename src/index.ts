@@ -23,11 +23,13 @@ interface PluginContext {
   tsPoetConfig: ToStringOpts;
   resolversPath: string;
   graphqlTypesPath: string;
-  QueryResolvers: Import;
-  MutationResolvers: Import;
-  SubscriptionResolvers: Import;
-  Context: Import;
-  run: Import;
+  imports: {
+    QueryResolvers: Import;
+    MutationResolvers: Import;
+    SubscriptionResolvers: Import;
+    Context: Import;
+    run: Import;
+  };
 }
 
 /**
@@ -51,38 +53,46 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
     },
     resolversPath,
     graphqlTypesPath,
-    QueryResolvers: toImp(buildSpec(graphqlTypesPath, "QueryResolvers"), {
-      typeName: "QueryResolvers",
-      isTypeOnlyImport: true,
-    }),
-    MutationResolvers: toImp(buildSpec(graphqlTypesPath, "MutationResolvers"), {
-      typeName: "MutationResolvers",
-      isTypeOnlyImport: true,
-    }),
-    SubscriptionResolvers: toImp(buildSpec(graphqlTypesPath, "SubscriptionResolvers"), {
-      typeName: "SubscriptionResolvers",
-      isTypeOnlyImport: true,
-    }),
-    Context: toImp(contextType, { typeName: "Context", isTypeOnlyImport: true }),
-    run: toImp(buildSpec(testUtilsPath, "run"), { typeName: "run" }),
+    imports: {
+      QueryResolvers: toImp(buildSpec(graphqlTypesPath, "QueryResolvers"), {
+        typeName: "QueryResolvers",
+        isTypeOnlyImport: true,
+      }),
+      MutationResolvers: toImp(buildSpec(graphqlTypesPath, "MutationResolvers"), {
+        typeName: "MutationResolvers",
+        isTypeOnlyImport: true,
+      }),
+      SubscriptionResolvers: toImp(buildSpec(graphqlTypesPath, "SubscriptionResolvers"), {
+        typeName: "SubscriptionResolvers",
+        isTypeOnlyImport: true,
+      }),
+      Context: toImp(contextType, { typeName: "Context", isTypeOnlyImport: true }),
+      run: toImp(buildSpec(testUtilsPath, "run"), { typeName: "run" }),
+    },
   };
 
   const mutationType = schema.getMutationType();
   if (mutationType) {
     const symbols = await generateMutationScaffolding(ctx, mutationType);
-    await writeBarrelFile(ctx, "mutationResolvers", ctx.MutationResolvers, "mutations/index.ts", symbols);
+    await writeBarrelFile(ctx, "mutationResolvers", ctx.imports.MutationResolvers, "mutations/index.ts", symbols);
   }
 
   const queryType = schema.getQueryType();
   if (queryType) {
     const symbols = await generateQueryScaffolding(ctx, queryType);
-    await writeBarrelFile(ctx, "queryResolvers", ctx.QueryResolvers, "queries/index.ts", symbols);
+    await writeBarrelFile(ctx, "queryResolvers", ctx.imports.QueryResolvers, "queries/index.ts", symbols);
   }
 
   const subscriptionType = schema.getSubscriptionType();
   if (subscriptionType) {
     const symbols = await generateSubscriptionScaffolding(ctx, subscriptionType);
-    await writeBarrelFile(ctx, "subscriptionResolvers", ctx.SubscriptionResolvers, "subscriptions/index.ts", symbols);
+    await writeBarrelFile(
+      ctx,
+      "subscriptionResolvers",
+      ctx.imports.SubscriptionResolvers,
+      "subscriptions/index.ts",
+      symbols,
+    );
   }
 
   // Allow config to ignore certain objects, i.e. we ignore all of our enums b/c `enumsResolvers` codegens them
@@ -110,7 +120,11 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 
 /** Given the `Query` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObjectType): Promise<Import[]> {
-  const { graphqlTypesPath, resolversPath, QueryResolvers, Context, run } = ctx;
+  const {
+    graphqlTypesPath,
+    resolversPath,
+    imports: { QueryResolvers, Context, run },
+  } = ctx;
   const cwd = await fs.realpath(".");
 
   // Loop over every `Query.foo` field
@@ -166,7 +180,11 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
 
 /** Given the `Mutation` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQLObjectType): Promise<Import[]> {
-  const { graphqlTypesPath, resolversPath, MutationResolvers, Context, run } = ctx;
+  const {
+    graphqlTypesPath,
+    resolversPath,
+    imports: { MutationResolvers, Context, run },
+  } = ctx;
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(mutation.getFields()).map(async (field) => {
@@ -224,7 +242,11 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
 
 /** Given the `Subscription` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function generateSubscriptionScaffolding(ctx: PluginContext, subscription: GraphQLObjectType): Promise<Import[]> {
-  const { graphqlTypesPath, resolversPath, SubscriptionResolvers, Context, run } = ctx;
+  const {
+    graphqlTypesPath,
+    resolversPath,
+    imports: { SubscriptionResolvers, Context, run },
+  } = ctx;
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(subscription.getFields()).map(async (field) => {
