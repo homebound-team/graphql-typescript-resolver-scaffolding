@@ -545,7 +545,7 @@ describe("Config options", () => {
 
     const files = await runPlugin(schema, {
       emitLegacyCommonJSImports: false,
-      resolversPath: "#src/api/resolvers",
+      resolversPath: "\\#src/api/resolvers",
       contextType: "\\#src/context#AppContext",
       graphqlTypesPath: "\\#src/graphql-types",
       testUtilsPath: "\\#src/test-helpers",

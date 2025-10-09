@@ -3,7 +3,7 @@ import { parseMapper, isExternalMapperType } from "@graphql-codegen/visitor-plug
 import { pascalCase, camelCase } from "change-case";
 import { promises as fs } from "fs";
 import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
-import { dirname } from "path";
+import { dirname, join, normalize, isAbsolute } from "path";
 import { code, Code, imp, Import } from "ts-poet";
 import type { RawConfig } from "@graphql-codegen/visitor-plugin-common";
 import type { ToStringOpts } from "ts-poet/build/Code";
@@ -40,6 +40,7 @@ interface PluginContext {
 export const plugin: PluginFunction<Config> = async (schema, documents, config) => {
   const {
     emitLegacyCommonJSImports = true,
+    contextType = "src/context#Context",
     resolversPath = "src/resolvers",
     graphqlTypesPath = "src/generated/graphql-types",
     testUtilsPath = "src/resolvers/testUtils",
@@ -53,17 +54,17 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
     QueryResolvers: toImp(buildSpec(graphqlTypesPath, "QueryResolvers"), {
       typeName: "QueryResolvers",
       isTypeOnlyImport: true,
-    }) as Import,
+    }),
     MutationResolvers: toImp(buildSpec(graphqlTypesPath, "MutationResolvers"), {
       typeName: "MutationResolvers",
       isTypeOnlyImport: true,
-    }) as Import,
+    }),
     SubscriptionResolvers: toImp(buildSpec(graphqlTypesPath, "SubscriptionResolvers"), {
       typeName: "SubscriptionResolvers",
       isTypeOnlyImport: true,
-    }) as Import,
-    Context: toImp(config.contextType, { typeName: "Context", isTypeOnlyImport: true }) as Import,
-    run: toImp(buildSpec(testUtilsPath, "run"), { typeName: "run" }) as Import,
+    }),
+    Context: toImp(contextType, { typeName: "Context", isTypeOnlyImport: true }),
+    run: toImp(buildSpec(testUtilsPath, "run"), { typeName: "run" }),
   };
 
   const mutationType = schema.getMutationType();
@@ -119,12 +120,13 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
     const argsImp =
       field.args.length === 0
         ? "{}"
-        : (toImp(buildSpec(graphqlTypesPath, `Query${pascalCase(name)}Args`), {
+        : toImp(buildSpec(graphqlTypesPath, `Query${pascalCase(name)}Args`), {
+            typeName: `Query${pascalCase(name)}Args`,
             isTypeOnlyImport: true,
-          }) as Import);
+          });
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
-    const modulePath = `${resolversPath}/${maybeSubDir ?? "queries"}/${name}Query`;
+    const modulePath = join(unescapePath(resolversPath), maybeSubDir ?? "queries", `${name}Query`);
     const resolverConst = imp(`${name}@${modulePath}.ts`);
 
     const newFile = await writeIfNew(
@@ -174,11 +176,14 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
     const inputType = getInputType(field);
     // if no inputType then make inputImp void
     const inputImp = inputType
-      ? (toImp(buildSpec(graphqlTypesPath, inputType.name), { isTypeOnlyImport: true }) as Import)
+      ? toImp(buildSpec(graphqlTypesPath, inputType.name), {
+          typeName: inputType.name,
+          isTypeOnlyImport: true,
+        })
       : "void";
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
-    const modulePath = `${resolversPath}/${maybeSubDir ?? "mutations"}/${name}Mutation`;
+    const modulePath = join(unescapePath(resolversPath), maybeSubDir ?? "mutations", `${name}Mutation`);
     const resolverConst = imp(`${name}@${modulePath}.ts`);
 
     const newFile = await writeIfNew(
@@ -227,9 +232,10 @@ async function generateSubscriptionScaffolding(ctx: PluginContext, subscription:
     const argsImp =
       field.args.length === 0
         ? "{}"
-        : (toImp(buildSpec(graphqlTypesPath, `Subscription${pascalCase(name)}Args`), {
+        : toImp(buildSpec(graphqlTypesPath, `Subscription${pascalCase(name)}Args`), {
+            typeName: `Subscription${pascalCase(name)}Args`,
             isTypeOnlyImport: true,
-          }) as Import);
+          });
     const resolverContents: Code[] = [];
 
     // define subscription event
@@ -272,7 +278,7 @@ async function generateSubscriptionScaffolding(ctx: PluginContext, subscription:
     }
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
-    const modulePath = `${resolversPath}/${maybeSubDir ?? "subscriptions"}/${name}Subscription`;
+    const modulePath = join(unescapePath(resolversPath), maybeSubDir ?? "subscriptions", `${name}Subscription`);
     const resolverConst = imp(`${name}@${modulePath}.ts`);
     const testContents = code`
       describe("${name}", () => {
@@ -304,10 +310,11 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
 
   const name = camelCase(object.name);
   const resolverType = toImp(buildSpec(graphqlTypesPath, `${object.name}Resolvers`), {
+    typeName: `${object.name}Resolvers`,
     isTypeOnlyImport: true,
-  }) as Import;
+  });
   const maybeSubDir = maybeGetSchemaFile(cwd, object);
-  const modulePath = `${resolversPath}/${maybeSubDir ?? "objects"}/${name}Resolvers`;
+  const modulePath = join(unescapePath(resolversPath), maybeSubDir ?? "objects", `${name}Resolvers`);
   const resolverConst = imp(`${name}Resolvers@${modulePath}.ts`);
 
   const newFile = await writeIfNew(
@@ -353,7 +360,7 @@ async function writeBarrelFile(
     }
   `;
   await fs.writeFile(
-    `${toFilesystemPath(resolversPath)}/${filePath}`,
+    join(toFilesystemPath(resolversPath), filePath),
     contents.toString({ path: filePath, ...tsPoetConfig }),
   );
 }
@@ -374,7 +381,7 @@ async function writeObjectBarrelFile(
     }
   `;
   await fs.writeFile(
-    `${toFilesystemPath(resolversPath)}/${filePath}`,
+    join(toFilesystemPath(resolversPath), filePath),
     contents.toString({ path: filePath, ...tsPoetConfig }),
   );
 }
@@ -489,6 +496,11 @@ export function parseExternalMapper(spec: string): {
  * Maps the visit-plugin convention (e.g., `@src/context#Context` or `#src/context#Context` for subpath imports) to ts-poet's format.
  * Returns undefined if spec is undefined.
  */
+export function toImp(spec: string, options: { typeName: string; isTypeOnlyImport?: boolean }): Import;
+export function toImp(
+  spec: string | undefined,
+  options?: { typeName?: string; isTypeOnlyImport?: boolean },
+): string | Import | undefined;
 export function toImp(
   spec: string | undefined,
   options: { typeName?: string; isTypeOnlyImport?: boolean } = {},
@@ -518,15 +530,45 @@ export function toImp(
   return imp(`${typeOnlyPrefix}${mapper.import}@${sourceWithExt}`);
 }
 
-/** The config values we read from the graphql-codegen.yml file. */
+/**
+ * The config values we read from the graphql-codegen.yml file.
+ *
+ * Note on subpath imports: If using Node.js subpath imports (paths starting with #),
+ * you must escape the # character with a backslash to avoid ambiguity with the # separator
+ * used in mapper specs. For example:
+ * - contextType: "\\#src/context#AppContext"
+ * - resolversPath: "\\#src/resolvers"
+ * - graphqlTypesPath: "\\#src/types"
+ */
 export interface Config extends RawConfig {
-  contextType: string;
+  /**
+   * Type to use for resolver context.
+   * Supports subpath imports like "\\#src/context#AppContext".
+   *
+   * @default - "src/context#Context".
+   */
+  contextType?: string;
   mappers: Record<string, string>;
-  /** Output directory for generated resolver scaffolding. Defaults to "src/resolvers". Supports subpath imports like "#src/resolvers". */
+  /**
+   * Output directory for generated resolver scaffolding.
+   * Supports subpath imports like "\\#src/resolvers".
+   *
+   * @default - "src/resolvers"
+   */
   resolversPath?: string;
-  /** Path to the generated GraphQL types file. Defaults to "src/generated/graphql-types". Supports subpath imports like "#src/graphql-types". */
+  /**
+   * Path to the generated GraphQL types file.
+   * Supports subpath imports like "\\#src/graphql-types".
+   *
+   * @default - "src/generated/graphql-types".
+   */
   graphqlTypesPath?: string;
-  /** Path to the test utils module. Defaults to "src/resolvers/testUtils". Supports subpath imports like "#src/testUtils". */
+  /**
+   * Path to the test utils module.
+   * Supports subpath imports like "\\#src/testUtils".
+   *
+   * @default - "src/resolvers/testUtils".
+   */
   testUtilsPath?: string;
   scaffolding?: {
     ignoreObjectsPattern?: string;
@@ -557,17 +599,53 @@ function isGraphQLObjectType(o: any): o is GraphQLObjectType {
   return o instanceof GraphQLObjectType;
 }
 
+/**
+ * Unescapes a path by removing the leading backslash from escaped subpath imports.
+ * For example, "\\#src/foo" becomes "#src/foo"
+ */
+function unescapePath(path: string): string {
+  return path.startsWith("\\#") ? path.substring(1) : path;
+}
+
+/**
+ * Builds a mapper spec from a path and export name.
+ *
+ * Note: If the path is a subpath import (starts with #), it must be pre-escaped
+ * by the caller (e.g., "\\#src/foo" not "#src/foo") to avoid ambiguity with the
+ * # separator between path and export name.
+ */
 function buildSpec(path: string, exportName: string): string {
-  // If path starts with #, it's a subpath import and needs to be escaped
-  const escapedPath = path.startsWith("#") ? `\\${path}` : path;
-  return `${escapedPath}#${exportName}`;
+  return `${path}#${exportName}`;
 }
 
 /**
  * Converts a potentially subpath-import path to a filesystem path by stripping the leading #
+ * or escaped leading \\#.
  *
- * NOTE that this assumes the subpath is relative to the project root (which is true for our use-cases)
+ * Validates that the resulting path is relative and does not attempt to traverse outside
+ * the project directory.
  */
 function toFilesystemPath(path: string): string {
-  return path.startsWith("#") ? path.substring(1) : path;
+  // Strip leading # or \#
+  let normalizedPath = path;
+  if (normalizedPath.startsWith("\\#")) {
+    normalizedPath = normalizedPath.substring(2);
+  } else if (normalizedPath.startsWith("#")) {
+    normalizedPath = normalizedPath.substring(1);
+  }
+
+  // Validate that the path is relative
+  if (isAbsolute(normalizedPath)) {
+    throw new Error(`Path must be relative, got absolute path: ${path}`);
+  }
+
+  // Normalize the path to resolve any .. or . segments
+  const normalized = normalize(normalizedPath);
+
+  // Check if the normalized path tries to escape the project directory
+  if (normalized.startsWith("..")) {
+    throw new Error(`Path cannot traverse outside project directory: ${path}`);
+  }
+
+  return normalizedPath;
 }
