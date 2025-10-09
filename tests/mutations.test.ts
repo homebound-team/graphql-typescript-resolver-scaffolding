@@ -1,4 +1,4 @@
-import { createTestSchema, runPlugin, getFile } from "./utils/test-helpers";
+import { createTestSchema, runPlugin } from "./utils/test-helpers";
 
 describe("Mutation resolver scaffolding", () => {
   it("generates expected mutation files with standard configuration", async () => {

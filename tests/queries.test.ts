@@ -1,4 +1,4 @@
-import { createTestSchema, runPlugin, getFile } from "./utils/test-helpers";
+import { createTestSchema, runPlugin } from "./utils/test-helpers";
 
 describe("Query resolver scaffolding", () => {
   it("generates expected query files with standard configuration", async () => {
