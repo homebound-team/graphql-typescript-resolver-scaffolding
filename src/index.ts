@@ -492,7 +492,7 @@ async function writeIfNew(ctx: PluginContext, path: string, code: Code): Promise
 }
 
 /**
- * Parses a mapper specification and returns structured information about external mappers.
+ * Parses a graphql-codegen mapper specification and returns structured information about external mappers.
  * Supports both traditional format (path#symbol) and subpath imports (#src/path#symbol).
  */
 export function parseExternalMapper(spec: string): {
@@ -515,7 +515,7 @@ export function parseExternalMapper(spec: string): {
 }
 
 /**
- * Maps the visit-plugin convention (e.g., `@src/context#Context` or `#src/context#Context` for subpath imports) to ts-poet's format.
+ * Maps the graphql-codegen mapper specification (e.g., `@src/context#Context` or `#src/context#Context` for subpath imports) to ts-poet's format.
  * Returns undefined if spec is undefined.
  */
 export function toImp(spec: string, options: { typeName: string; isTypeOnlyImport?: boolean }): Import;
