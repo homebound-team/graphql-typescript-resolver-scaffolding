@@ -4,3 +4,9 @@
 /.husky
 /.prettierrc.js
 /jest.config.js
+/tests
+/bump.sh
+/.yarn
+/tsconfig.json
+/tsconfig.build.json
+/.nvmrc

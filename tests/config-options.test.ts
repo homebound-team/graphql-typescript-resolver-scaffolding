@@ -272,9 +272,7 @@ describe("Config options", () => {
     expect(getFile(files, "internalBookResolvers.ts")).toBeUndefined();
   });
 
-  // TODO: Fix this test
-  // This is a bug today - we are not paying attention to the contextType from the config
-  it.skip("uses custom contextType from config", async () => {
+  it("uses custom contextType from config", async () => {
     const schema = createTestSchema(`
       type Query {
         authors: [Author!]!
@@ -292,10 +290,101 @@ describe("Config options", () => {
       },
     });
 
-    // The contextType is used in test file generation
     const testFile = getFile(files, "authorsQuery.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-     "import { Context } from "src/context";
+     "import type { MyContext } from "src/custom/MyContext";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+     import { run } from "src/resolvers/testUtils";
+
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runAuthors(ctx: MyContext, argsFn: () => {}) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
+     "
+    `);
+  });
+
+  it("uses custom graphqlTypesPath from config", async () => {
+    const schema = createTestSchema(`
+      type Query {
+        authors: [Author!]!
+      }
+
+      type Mutation {
+        saveAuthor(input: SaveAuthorInput!): Author!
+      }
+
+      input SaveAuthorInput {
+        name: String!
+      }
+
+      type Author {
+        name: String!
+      }
+    `);
+
+    const files = await runPlugin(schema, {
+      graphqlTypesPath: "src/custom/generated-types",
+      mappers: {
+        Author: "src/entities#Author",
+      },
+    });
+
+    expect(files).toMatchInlineSnapshot(`
+     {
+       "src/resolvers/mutations/index.ts": "import type { MutationResolvers } from "src/custom/generated-types";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+
+     // This file is auto-generated
+
+     export const mutationResolvers: MutationResolvers = { ...saveAuthor };
+     ",
+       "src/resolvers/mutations/saveAuthorMutation.test.ts": "import type { Context } from "src/context";
+     import type { SaveAuthorInput } from "src/custom/generated-types";
+     import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { run } from "src/resolvers/testUtils";
+
+     describe("saveAuthor", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runSaveAuthor(ctx: Context, inputFn: () => SaveAuthorInput) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
+     }
+     ",
+       "src/resolvers/mutations/saveAuthorMutation.ts": "import type { MutationResolvers } from "src/custom/generated-types";
+
+     export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
+       async saveAuthor(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/custom/generated-types";
+
+     // @ts-ignore not implemented
+     export const authorResolvers: AuthorResolvers = {};
+     ",
+       "src/resolvers/objects/index.ts": "import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+
+     // This file is auto-generated
+
+     export const objectResolvers = { Author: authorResolvers };
+     ",
+       "src/resolvers/queries/authorsQuery.test.ts": "import type { Context } from "src/context";
      import { authors } from "src/resolvers/queries/authorsQuery";
      import { run } from "src/resolvers/testUtils";
 
@@ -308,7 +397,242 @@ describe("Config options", () => {
      function runAuthors(ctx: Context, argsFn: () => {}) {
        return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
      }
+     ",
+       "src/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "src/custom/generated-types";
+
+     export const authors: Pick<QueryResolvers, "authors"> = {
+       async authors(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/resolvers/queries/index.ts": "import type { QueryResolvers } from "src/custom/generated-types";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+
+     // This file is auto-generated
+
+     export const queryResolvers: QueryResolvers = { ...authors };
+     ",
+     }
+    `);
+  });
+
+  it("uses custom testUtilsPath from config", async () => {
+    const schema = createTestSchema(`
+      type Query {
+        authors: [Author!]!
+      }
+
+      type Author {
+        name: String!
+      }
+    `);
+
+    const files = await runPlugin(schema, {
+      testUtilsPath: "src/test-helpers/utils",
+      mappers: {
+        Author: "src/entities#Author",
+      },
+    });
+
+    const testFile = getFile(files, "authorsQuery.test.ts");
+    expect(testFile).toMatchInlineSnapshot(`
+     "import type { Context } from "src/context";
+     import { authors } from "src/resolvers/queries/authorsQuery";
+     import { run } from "src/test-helpers/utils";
+
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runAuthors(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
      "
+    `);
+  });
+
+  it("uses custom resolversPath from config", async () => {
+    const schema = createTestSchema(`
+      type Query {
+        authors: [Author!]!
+      }
+
+      type Author {
+        name: String!
+      }
+    `);
+
+    const files = await runPlugin(schema, {
+      resolversPath: "src/api/resolvers",
+      mappers: {
+        Author: "src/entities#Author",
+      },
+    });
+
+    expect(files).toMatchInlineSnapshot(`
+     {
+       "src/api/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/api/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "src/generated/graphql-types";
+
+     // @ts-ignore not implemented
+     export const authorResolvers: AuthorResolvers = {};
+     ",
+       "src/api/resolvers/objects/index.ts": "import { authorResolvers } from "src/api/resolvers/objects/authorResolvers";
+
+     // This file is auto-generated
+
+     export const objectResolvers = { Author: authorResolvers };
+     ",
+       "src/api/resolvers/queries/authorsQuery.test.ts": "import { authors } from "src/api/resolvers/queries/authorsQuery";
+     import type { Context } from "src/context";
+     import { run } from "src/resolvers/testUtils";
+
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runAuthors(ctx: Context, argsFn: () => {}) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
+     ",
+       "src/api/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "src/generated/graphql-types";
+
+     export const authors: Pick<QueryResolvers, "authors"> = {
+       async authors(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/api/resolvers/queries/index.ts": "import { authors } from "src/api/resolvers/queries/authorsQuery";
+     import type { QueryResolvers } from "src/generated/graphql-types";
+
+     // This file is auto-generated
+
+     export const queryResolvers: QueryResolvers = { ...authors };
+     ",
+     }
+    `);
+  });
+
+  it("supports subpath imports for all configuration options", async () => {
+    const schema = createTestSchema(`
+      type Query {
+        authors: [Author!]!
+      }
+
+      type Mutation {
+        saveAuthor(input: SaveAuthorInput!): Author!
+      }
+
+      input SaveAuthorInput {
+        name: String!
+      }
+
+      type Author {
+        name: String!
+      }
+    `);
+
+    const files = await runPlugin(schema, {
+      emitLegacyCommonJSImports: false,
+      resolversPath: "\\#src/api/resolvers",
+      contextType: "\\#src/context#AppContext",
+      graphqlTypesPath: "\\#src/graphql-types",
+      testUtilsPath: "\\#src/test-helpers",
+      mappers: {
+        Author: "\\#src/entities#Author",
+      },
+    });
+
+    expect(files).toMatchInlineSnapshot(`
+     {
+       "src/api/resolvers/mutations/index.ts": "import { saveAuthor } from "#src/api/resolvers/mutations/saveAuthorMutation.js";
+     import type { MutationResolvers } from "#src/graphql-types.js";
+
+     // This file is auto-generated
+
+     export const mutationResolvers: MutationResolvers = { ...saveAuthor };
+     ",
+       "src/api/resolvers/mutations/saveAuthorMutation.test.ts": "import { saveAuthor } from "#src/api/resolvers/mutations/saveAuthorMutation.js";
+     import type { AppContext } from "#src/context.js";
+     import type { SaveAuthorInput } from "#src/graphql-types.js";
+     import { run } from "#src/test-helpers.js";
+
+     describe("saveAuthor", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runSaveAuthor(ctx: AppContext, inputFn: () => SaveAuthorInput) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
+     }
+     ",
+       "src/api/resolvers/mutations/saveAuthorMutation.ts": "import type { MutationResolvers } from "#src/graphql-types.js";
+
+     export const saveAuthor: Pick<MutationResolvers, "saveAuthor"> = {
+       async saveAuthor(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/api/resolvers/objects/authorResolvers.test.ts": "describe("authorResolvers", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+     ",
+       "src/api/resolvers/objects/authorResolvers.ts": "import type { AuthorResolvers } from "#src/graphql-types.js";
+
+     // @ts-ignore not implemented
+     export const authorResolvers: AuthorResolvers = {};
+     ",
+       "src/api/resolvers/objects/index.ts": "import { authorResolvers } from "#src/api/resolvers/objects/authorResolvers.js";
+
+     // This file is auto-generated
+
+     export const objectResolvers = { Author: authorResolvers };
+     ",
+       "src/api/resolvers/queries/authorsQuery.test.ts": "import { authors } from "#src/api/resolvers/queries/authorsQuery.js";
+     import type { AppContext } from "#src/context.js";
+     import { run } from "#src/test-helpers.js";
+
+     describe("authors", () => {
+       it("handles this business case", () => {
+         fail();
+       });
+     });
+
+     function runAuthors(ctx: AppContext, argsFn: () => {}) {
+       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     }
+     ",
+       "src/api/resolvers/queries/authorsQuery.ts": "import type { QueryResolvers } from "#src/graphql-types.js";
+
+     export const authors: Pick<QueryResolvers, "authors"> = {
+       async authors(root, args, ctx) {
+         throw new Error("not implemented");
+       },
+     };
+     ",
+       "src/api/resolvers/queries/index.ts": "import { authors } from "#src/api/resolvers/queries/authorsQuery.js";
+     import type { QueryResolvers } from "#src/graphql-types.js";
+
+     // This file is auto-generated
+
+     export const queryResolvers: QueryResolvers = { ...authors };
+     ",
+     }
     `);
   });
 });
