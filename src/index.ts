@@ -381,10 +381,9 @@ async function writeBarrelFile(
       ${symbols.map((symbol) => code`...${symbol},`)}
     }
   `;
-  await fs.writeFile(
-    join(normalizePath(resolversPath), filePath),
-    contents.toString({ path: filePath, ...tsPoetConfig }),
-  );
+  const fullPath = join(normalizePath(resolversPath), filePath);
+  await fs.mkdir(dirname(fullPath), { recursive: true });
+  await fs.writeFile(fullPath, contents.toString({ path: filePath, ...tsPoetConfig }));
 }
 
 /** Creates a barrel file that re-exports every symbol in `symbols`. */
@@ -402,10 +401,9 @@ async function writeObjectBarrelFile(
       ${Object.entries(sortObject(symbols)).map(([name, symbol]) => code`${name}: ${symbol},`)}
     }
   `;
-  await fs.writeFile(
-    join(normalizePath(resolversPath), filePath),
-    contents.toString({ path: filePath, ...tsPoetConfig }),
-  );
+  const fullPath = join(normalizePath(resolversPath), filePath);
+  await fs.mkdir(dirname(fullPath), { recursive: true });
+  await fs.writeFile(fullPath, contents.toString({ path: filePath, ...tsPoetConfig }));
 }
 
 /** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
