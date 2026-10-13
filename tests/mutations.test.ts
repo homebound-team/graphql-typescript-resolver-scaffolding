@@ -227,45 +227,243 @@ describe("Mutation resolver scaffolding", () => {
     expect(files["src/resolvers/mutations/noInputMutationMutation.test.ts"]).toBeDefined();
   });
 
-  it.each(["input: AuthorInput!", "input: AuthorInput", "input: String!", "input: [String!]!"])(
-    "uses the input helper for a single argument named input (%s)",
-    async (args) => {
-      // Given a mutation with exactly one input argument
-      const schema = createTestSchema(`
-        type Query { dummy: String }
-        type Mutation { saveAuthor(${args}): Boolean }
-        input AuthorInput { name: String }
-      `);
+  it("uses the input helper for a required object input", async () => {
+    // Given a mutation with exactly one required input argument
+    const schema = createMutationSchema("(input: AuthorInput!)");
 
-      // When its test is scaffolded
-      const files = await runPlugin(schema);
+    // When its test is scaffolded
+    const files = await runPlugin(schema);
 
-      // Then the helper receives the whole resolver without context or input-type imports
-      expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchSnapshot();
-    },
-  );
+    // Then the helper receives the whole resolver without context or input-type imports
+    expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
 
-  it.each(["", "(author: AuthorInput!)", "(input: AuthorInput!, dryRun: Boolean!)", "(id: ID!, name: String)"])(
-    "passes the actual arguments through the fallback runner for saveAuthor%s",
-    async (args) => {
-      // Given a mutation that does not follow the single-input convention
-      const schema = createTestSchema(`
-        type Query { dummy: String }
-        type Mutation { saveAuthor${args}: Boolean }
-        input AuthorInput { name: String }
-      `);
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
 
-      // When its test is scaffolded with custom ESM imports
-      const files = await runPlugin(schema, {
-        emitLegacyCommonJSImports: false,
-        contextType: "src/custom/context#AppContext",
-        graphqlTypesPath: "src/custom/graphql-types",
-        resolversPath: "src/custom/resolvers",
-        testUtilsPath: "src/custom/testUtils",
-      });
+     const runMutation = makeRunInputMutation(saveAuthor);
+     "
+    `);
+  });
 
-      // Then the fallback uses the configured context and complete argument type, or {} for no arguments
-      expect(files["src/custom/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchSnapshot();
-    },
-  );
+  it("uses the input helper for a nullable object input", async () => {
+    // Given a mutation with exactly one nullable input argument
+    const schema = createMutationSchema("(input: AuthorInput)");
+
+    // When its test is scaffolded
+    const files = await runPlugin(schema);
+
+    // Then the helper receives the whole resolver without context or input-type imports
+    expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     const runMutation = makeRunInputMutation(saveAuthor);
+     "
+    `);
+  });
+
+  it("uses the input helper for a scalar input", async () => {
+    // Given a mutation with exactly one scalar input argument
+    const schema = createMutationSchema("(input: String!)");
+
+    // When its test is scaffolded
+    const files = await runPlugin(schema);
+
+    // Then the helper receives the whole resolver without context or input-type imports
+    expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     const runMutation = makeRunInputMutation(saveAuthor);
+     "
+    `);
+  });
+
+  it("uses the input helper for a list input", async () => {
+    // Given a mutation with exactly one list input argument
+    const schema = createMutationSchema("(input: [String!]!)");
+
+    // When its test is scaffolded
+    const files = await runPlugin(schema);
+
+    // Then the helper receives the whole resolver without context or input-type imports
+    expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     const runMutation = makeRunInputMutation(saveAuthor);
+     "
+    `);
+  });
+
+  it("passes empty arguments through the fallback runner for a zero-argument mutation", async () => {
+    // Given a mutation without arguments
+    const schema = createMutationSchema("");
+
+    // When its test is scaffolded with custom ESM imports
+    const files = await runPlugin(schema, fallbackConfig);
+
+    // Then the fallback uses the configured context and passes {}
+    expect(files["src/custom/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import type { AppContext } from "src/custom/context.js";
+     import { saveAuthor } from "src/custom/resolvers/mutations/saveAuthorMutation.js";
+     import { run } from "src/custom/testUtils.js";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     function runMutation(ctx: AppContext) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, {}, ctx, undefined!));
+     }
+     "
+    `);
+  });
+
+  it("passes a non-input argument through the fallback runner", async () => {
+    // Given a mutation with an argument named author
+    const schema = createMutationSchema("(author: AuthorInput!)");
+
+    // When its test is scaffolded with custom ESM imports
+    const files = await runPlugin(schema, fallbackConfig);
+
+    // Then the fallback uses the configured context and complete argument type
+    expect(files["src/custom/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import type { AppContext } from "src/custom/context.js";
+     import type { MutationSaveAuthorArgs } from "src/custom/graphql-types.js";
+     import { saveAuthor } from "src/custom/resolvers/mutations/saveAuthorMutation.js";
+     import { run } from "src/custom/testUtils.js";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     function runMutation(ctx: AppContext, argsFn: () => MutationSaveAuthorArgs) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, argsFn(), ctx, undefined!));
+     }
+     "
+    `);
+  });
+
+  it("passes input and additional arguments through the fallback runner", async () => {
+    // Given a mutation with input and dryRun arguments
+    const schema = createMutationSchema("(input: AuthorInput!, dryRun: Boolean!)");
+
+    // When its test is scaffolded with custom ESM imports
+    const files = await runPlugin(schema, fallbackConfig);
+
+    // Then the fallback uses the configured context and complete argument type
+    expect(files["src/custom/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import type { AppContext } from "src/custom/context.js";
+     import type { MutationSaveAuthorArgs } from "src/custom/graphql-types.js";
+     import { saveAuthor } from "src/custom/resolvers/mutations/saveAuthorMutation.js";
+     import { run } from "src/custom/testUtils.js";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     function runMutation(ctx: AppContext, argsFn: () => MutationSaveAuthorArgs) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, argsFn(), ctx, undefined!));
+     }
+     "
+    `);
+  });
+
+  it("passes multiple non-input arguments through the fallback runner", async () => {
+    // Given a mutation with id and name arguments
+    const schema = createMutationSchema("(id: ID!, name: String)");
+
+    // When its test is scaffolded with custom ESM imports
+    const files = await runPlugin(schema, fallbackConfig);
+
+    // Then the fallback uses the configured context and complete argument type
+    expect(files["src/custom/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchInlineSnapshot(`
+     "import type { AppContext } from "src/custom/context.js";
+     import type { MutationSaveAuthorArgs } from "src/custom/graphql-types.js";
+     import { saveAuthor } from "src/custom/resolvers/mutations/saveAuthorMutation.js";
+     import { run } from "src/custom/testUtils.js";
+
+     describe("saveAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     function runMutation(ctx: AppContext, argsFn: () => MutationSaveAuthorArgs) {
+       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, argsFn(), ctx, undefined!));
+     }
+     "
+    `);
+  });
 });
+
+const fallbackConfig = {
+  emitLegacyCommonJSImports: false,
+  contextType: "src/custom/context#AppContext",
+  graphqlTypesPath: "src/custom/graphql-types",
+  resolversPath: "src/custom/resolvers",
+  testUtilsPath: "src/custom/testUtils",
+};
+
+/** Creates a mutation schema with the supplied argument declaration. */
+function createMutationSchema(args: string) {
+  return createTestSchema(`
+    type Query { dummy: String }
+    type Mutation { saveAuthor${args}: Boolean }
+    input AuthorInput { name: String }
+  `);
+}

@@ -56,7 +56,7 @@ Todo: Think about where `extend type OtherObject` things go, when both in `schem
 
 The plugin only generates scaffolds for objects that are mapped types.
 
-- `scaffolding.ignoreObjectsPattern` will ignore certain objects that are mapped types, but you don't want scaffolded
+- `scaffolding.ignoreObjectsPattern` will ignore mapped object types that you don't want scaffolded.
 - `resolversPath` sets the scaffold output directory and resolver imports (default: `src/resolvers`).
 - `graphqlTypesPath` sets the generated GraphQL types module (default: `src/generated/graphql-types`).
 - `testUtilsPath` sets the test helper module (default: `src/resolvers/testUtils`).
@@ -65,7 +65,7 @@ The plugin only generates scaffolds for objects that are mapped types.
 
 For Node.js subpath imports, escape the leading `#` in configuration paths, e.g. `"\\#src/testUtils"` or `"\\#src/context#AppContext"`.
 
-## Generated Tests and Consumer Requirements
+## Scaffolded Tests
 
 New query, mutation, and object tests use a context-aware test interface and an explicitly unfinished business-case placeholder:
 
@@ -86,13 +86,9 @@ Configure your test setup to provide and type `it.withCtx(name, async (ctx) => {
 
 The module configured by `testUtilsPath` must export these factories for the scaffold types you generate:
 
-| Scaffold                                         | Required exports                            | Generated declarations (below `describe`)                                                                             |
-| ------------------------------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Mutation with exactly one argument named `input` | `makeRunInputMutation`                      | `const runMutation = makeRunInputMutation(saveAuthor);`                                                               |
-| Query, with or without arguments                 | `makeRunQuery`                              | `const runQuery = makeRunQuery(authors);`                                                                             |
-| Mapped object                                    | `makeRunObjectFields`, `makeRunObjectField` | `const runFields = makeRunObjectFields(authorResolvers);` and `const runField = makeRunObjectField(authorResolvers);` |
-
-Each factory receives the **resolver object**, not an individual resolver method. Use helpers compatible with Joist's helper-based test interface, or provide equivalent application-owned helpers that infer context, argument, root, and result types from these objects. The plugin supplies imports and declarations, not helper implementations or test setup. It has no ORM dependency and object tests do not import mapped root types, entity factories, or `entityResolver`.
+- Mutations with exactly one argument named `input` require `makeRunInputMutation` and generate `const runMutation = makeRunInputMutation(saveAuthor);` below `describe`.
+- Queries, with or without arguments, require `makeRunQuery` and generate `const runQuery = makeRunQuery(authors);` below `describe`.
+- Mapped objects require `makeRunObjectFields` and `makeRunObjectField` and generate both `const runFields = makeRunObjectFields(authorResolvers);` and `const runField = makeRunObjectField(authorResolvers);` below `describe`.
 
 The input helper is used for a single argument named `input`, including nullable, scalar, and list inputs. Mutations with other argument shapes retain a wrapper using the configured context, GraphQL types, and `run` helper. For example, `deleteAuthor(id: ID!)` generates:
 
