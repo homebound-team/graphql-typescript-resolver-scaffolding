@@ -27,11 +27,20 @@ describe("Object resolver scaffolding", () => {
     expect(formatFilesForSnapshot(files)).toMatchInlineSnapshot(`
      "File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -44,11 +53,20 @@ describe("Object resolver scaffolding", () => {
 
      File: src/resolvers/objects/bookResolvers.test.ts
      =======================================================
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("bookResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(bookResolvers);
+     const runField = makeRunObjectField(bookResolvers);
 
 
      File: src/resolvers/objects/bookResolvers.ts
@@ -71,19 +89,19 @@ describe("Object resolver scaffolding", () => {
 
      File: src/resolvers/queries/authorsQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { authors } from "src/resolvers/queries/authorsQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/resolvers/queries/authorsQuery.ts
@@ -263,5 +281,35 @@ describe("Object resolver scaffolding", () => {
     expect(files["src/resolvers/objects/bookResolvers.ts"]).toBeDefined();
     expect(files["src/resolvers/objects/bookResolvers.ts"]).toContain("bookResolvers");
     expect(files["src/resolvers/objects/bookResolvers.test.ts"]).toBeDefined();
+  });
+
+  it("provides both field helpers without assuming an entity root", async () => {
+    // Given an object mapped to an application-owned root type
+    const schema = createTestSchema(`
+      type Query { settings: Settings }
+      type Settings { theme: String }
+    `);
+
+    // When its test is scaffolded
+    const files = await runPlugin(schema, { mappers: { Settings: "src/models#SettingsRoot" } });
+
+    // Then both helpers receive the resolver without importing the mapped root
+    expect(files["src/resolvers/objects/settingsResolvers.test.ts"]).toMatchInlineSnapshot(`
+     "import { settingsResolvers } from "src/resolvers/objects/settingsResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
+     describe("settingsResolvers", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     const runFields = makeRunObjectFields(settingsResolvers);
+     const runField = makeRunObjectField(settingsResolvers);
+     "
+    `);
   });
 });

@@ -50,13 +50,16 @@ describe("Mutation resolver scaffolding", () => {
      import { run } from "src/resolvers/testUtils";
 
      describe("noInputMutation", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runNoInputMutation(ctx: Context, inputFn: () => void) {
-       return run(ctx, (ctx) => noInputMutation.noInputMutation({}, { input: inputFn() }, ctx, undefined!));
+     function runMutation(ctx: Context) {
+       return run(ctx, (ctx) => noInputMutation.noInputMutation({}, {}, ctx, undefined!));
      }
 
 
@@ -73,20 +76,19 @@ describe("Mutation resolver scaffolding", () => {
 
      File: src/resolvers/mutations/saveAuthorMutation.test.ts
      =======================================================
-     import type { Context } from "src/context";
-     import type { AuthorInput } from "src/generated/graphql-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
 
      describe("saveAuthor", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runSaveAuthor(ctx: Context, inputFn: () => AuthorInput) {
-       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
-     }
+     const runMutation = makeRunInputMutation(saveAuthor);
 
 
      File: src/resolvers/mutations/saveAuthorMutation.ts
@@ -102,11 +104,20 @@ describe("Mutation resolver scaffolding", () => {
 
      File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -128,19 +139,19 @@ describe("Mutation resolver scaffolding", () => {
 
      File: src/resolvers/queries/dummyQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { dummy } from "src/resolvers/queries/dummyQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("dummy", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runDummy(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(dummy);
 
 
      File: src/resolvers/queries/dummyQuery.ts
@@ -215,4 +226,46 @@ describe("Mutation resolver scaffolding", () => {
     expect(files["src/resolvers/mutations/noInputMutationMutation.ts"]).toContain("noInputMutation");
     expect(files["src/resolvers/mutations/noInputMutationMutation.test.ts"]).toBeDefined();
   });
+
+  it.each(["input: AuthorInput!", "input: AuthorInput", "input: String!", "input: [String!]!"])(
+    "uses the input helper for a single argument named input (%s)",
+    async (args) => {
+      // Given a mutation with exactly one input argument
+      const schema = createTestSchema(`
+        type Query { dummy: String }
+        type Mutation { saveAuthor(${args}): Boolean }
+        input AuthorInput { name: String }
+      `);
+
+      // When its test is scaffolded
+      const files = await runPlugin(schema);
+
+      // Then the helper receives the whole resolver without context or input-type imports
+      expect(files["src/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchSnapshot();
+    },
+  );
+
+  it.each(["", "(author: AuthorInput!)", "(input: AuthorInput!, dryRun: Boolean!)", "(id: ID!, name: String)"])(
+    "passes the actual arguments through the fallback runner for saveAuthor%s",
+    async (args) => {
+      // Given a mutation that does not follow the single-input convention
+      const schema = createTestSchema(`
+        type Query { dummy: String }
+        type Mutation { saveAuthor${args}: Boolean }
+        input AuthorInput { name: String }
+      `);
+
+      // When its test is scaffolded with custom ESM imports
+      const files = await runPlugin(schema, {
+        emitLegacyCommonJSImports: false,
+        contextType: "src/custom/context#AppContext",
+        graphqlTypesPath: "src/custom/graphql-types",
+        resolversPath: "src/custom/resolvers",
+        testUtilsPath: "src/custom/testUtils",
+      });
+
+      // Then the fallback uses the configured context and complete argument type, or {} for no arguments
+      expect(files["src/custom/resolvers/mutations/saveAuthorMutation.test.ts"]).toMatchSnapshot();
+    },
+  );
 });

@@ -53,20 +53,19 @@ describe("Config options", () => {
 
      File: src/resolvers/mutations/saveAuthorMutation.test.ts
      =======================================================
-     import type { Context } from "src/context";
-     import type { SaveAuthorInput } from "src/generated/graphql-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
 
      describe("saveAuthor", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runSaveAuthor(ctx: Context, inputFn: () => SaveAuthorInput) {
-       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
-     }
+     const runMutation = makeRunInputMutation(saveAuthor);
 
 
      File: src/resolvers/mutations/saveAuthorMutation.ts
@@ -82,11 +81,20 @@ describe("Config options", () => {
 
      File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -99,11 +107,20 @@ describe("Config options", () => {
 
      File: src/resolvers/objects/bookResolvers.test.ts
      =======================================================
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("bookResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(bookResolvers);
+     const runField = makeRunObjectField(bookResolvers);
 
 
      File: src/resolvers/objects/bookResolvers.ts
@@ -126,19 +143,19 @@ describe("Config options", () => {
 
      File: src/resolvers/queries/authorsQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { authors } from "src/resolvers/queries/authorsQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/resolvers/queries/authorsQuery.ts
@@ -154,19 +171,19 @@ describe("Config options", () => {
 
      File: src/resolvers/queries/booksQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { books } from "src/resolvers/queries/booksQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("books", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runBooks(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(books);
 
 
      File: src/resolvers/queries/booksQuery.ts
@@ -323,6 +340,10 @@ describe("Config options", () => {
         authors: [Author!]!
       }
 
+      type Mutation {
+        deleteAuthor(id: ID!): Boolean
+      }
+
       type Author {
         name: String!
       }
@@ -335,20 +356,24 @@ describe("Config options", () => {
       },
     });
 
-    const testFile = getFile(files, "src/resolvers/queries/authorsQuery.test.ts");
+    const testFile = getFile(files, "src/resolvers/mutations/deleteAuthorMutation.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
      "import type { MyContext } from "src/custom/MyContext";
-     import { authors } from "src/resolvers/queries/authorsQuery";
+     import type { MutationDeleteAuthorArgs } from "src/generated/graphql-types";
+     import { deleteAuthor } from "src/resolvers/mutations/deleteAuthorMutation";
      import { run } from "src/resolvers/testUtils";
 
-     describe("authors", () => {
-       it("handles this business case", () => {
+     describe("deleteAuthor", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: MyContext, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
+     function runMutation(ctx: MyContext, argsFn: () => MutationDeleteAuthorArgs) {
+       return run(ctx, (ctx) => deleteAuthor.deleteAuthor({}, argsFn(), ctx, undefined!));
      }
      "
     `);
@@ -393,20 +418,19 @@ describe("Config options", () => {
 
      File: src/resolvers/mutations/saveAuthorMutation.test.ts
      =======================================================
-     import type { Context } from "src/context";
-     import type { SaveAuthorInput } from "src/custom/generated-types";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunInputMutation } from "src/resolvers/testUtils";
 
      describe("saveAuthor", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runSaveAuthor(ctx: Context, inputFn: () => SaveAuthorInput) {
-       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
-     }
+     const runMutation = makeRunInputMutation(saveAuthor);
 
 
      File: src/resolvers/mutations/saveAuthorMutation.ts
@@ -422,11 +446,20 @@ describe("Config options", () => {
 
      File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -448,19 +481,19 @@ describe("Config options", () => {
 
      File: src/resolvers/queries/authorsQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { authors } from "src/resolvers/queries/authorsQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/resolvers/queries/authorsQuery.ts
@@ -506,19 +539,19 @@ describe("Config options", () => {
 
     const testFile = getFile(files, "src/resolvers/queries/authorsQuery.test.ts");
     expect(testFile).toMatchInlineSnapshot(`
-     "import type { Context } from "src/context";
-     import { authors } from "src/resolvers/queries/authorsQuery";
-     import { run } from "src/test-helpers/utils";
+     "import { authors } from "src/resolvers/queries/authorsQuery";
+     import { makeRunQuery } from "src/test-helpers/utils";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
      "
     `);
   });
@@ -544,11 +577,20 @@ describe("Config options", () => {
     expect(formatFilesForSnapshot(files)).toMatchInlineSnapshot(`
      "File: src/api/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/api/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/api/resolvers/objects/authorResolvers.ts
@@ -571,18 +613,18 @@ describe("Config options", () => {
      File: src/api/resolvers/queries/authorsQuery.test.ts
      =======================================================
      import { authors } from "src/api/resolvers/queries/authorsQuery";
-     import type { Context } from "src/context";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/api/resolvers/queries/authorsQuery.ts
@@ -652,19 +694,18 @@ describe("Config options", () => {
      File: src/api/resolvers/mutations/saveAuthorMutation.test.ts
      =======================================================
      import { saveAuthor } from "#src/api/resolvers/mutations/saveAuthorMutation.js";
-     import type { AppContext } from "#src/context.js";
-     import type { SaveAuthorInput } from "#src/graphql-types.js";
-     import { run } from "#src/test-helpers.js";
+     import { makeRunInputMutation } from "#src/test-helpers.js";
 
      describe("saveAuthor", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runSaveAuthor(ctx: AppContext, inputFn: () => SaveAuthorInput) {
-       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
-     }
+     const runMutation = makeRunInputMutation(saveAuthor);
 
 
      File: src/api/resolvers/mutations/saveAuthorMutation.ts
@@ -680,11 +721,20 @@ describe("Config options", () => {
 
      File: src/api/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "#src/api/resolvers/objects/authorResolvers.js";
+     import { makeRunObjectField, makeRunObjectFields } from "#src/test-helpers.js";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/api/resolvers/objects/authorResolvers.ts
@@ -707,18 +757,18 @@ describe("Config options", () => {
      File: src/api/resolvers/queries/authorsQuery.test.ts
      =======================================================
      import { authors } from "#src/api/resolvers/queries/authorsQuery.js";
-     import type { AppContext } from "#src/context.js";
-     import { run } from "#src/test-helpers.js";
+     import { makeRunQuery } from "#src/test-helpers.js";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: AppContext, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/api/resolvers/queries/authorsQuery.ts
@@ -797,20 +847,19 @@ describe("Config options", () => {
 
      File: src/resolvers/mutations/saveAuthorMutation.test.ts
      =======================================================
-     import type { Context } from "src/context.js";
-     import type { SaveAuthorInput } from "src/generated/graphql-types.js";
      import { saveAuthor } from "src/resolvers/mutations/saveAuthorMutation.js";
-     import { run } from "src/resolvers/testUtils.js";
+     import { makeRunInputMutation } from "src/resolvers/testUtils.js";
 
      describe("saveAuthor", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runSaveAuthor(ctx: Context, inputFn: () => SaveAuthorInput) {
-       return run(ctx, (ctx) => saveAuthor.saveAuthor({}, { input: inputFn() }, ctx, undefined!));
-     }
+     const runMutation = makeRunInputMutation(saveAuthor);
 
 
      File: src/resolvers/mutations/saveAuthorMutation.ts
@@ -826,11 +875,20 @@ describe("Config options", () => {
 
      File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers.js";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils.js";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -843,11 +901,20 @@ describe("Config options", () => {
 
      File: src/resolvers/objects/bookResolvers.test.ts
      =======================================================
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers.js";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils.js";
+
      describe("bookResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(bookResolvers);
+     const runField = makeRunObjectField(bookResolvers);
 
 
      File: src/resolvers/objects/bookResolvers.ts
@@ -870,19 +937,19 @@ describe("Config options", () => {
 
      File: src/resolvers/queries/authorsQuery.test.ts
      =======================================================
-     import type { Context } from "src/context.js";
      import { authors } from "src/resolvers/queries/authorsQuery.js";
-     import { run } from "src/resolvers/testUtils.js";
+     import { makeRunQuery } from "src/resolvers/testUtils.js";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/resolvers/queries/authorsQuery.ts
@@ -898,19 +965,19 @@ describe("Config options", () => {
 
      File: src/resolvers/queries/booksQuery.test.ts
      =======================================================
-     import type { Context } from "src/context.js";
      import { books } from "src/resolvers/queries/booksQuery.js";
-     import { run } from "src/resolvers/testUtils.js";
+     import { makeRunQuery } from "src/resolvers/testUtils.js";
 
      describe("books", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runBooks(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(books);
 
 
      File: src/resolvers/queries/booksQuery.ts
@@ -980,4 +1047,30 @@ describe("Config options", () => {
      "
     `);
   });
+
+  it.each(["mutations/saveAuthorMutation", "queries/authorsQuery", "objects/authorResolvers"])(
+    "preserves an existing %s test when its resolver is new",
+    async (modulePath) => {
+      // Given a schema with mutation, query, and mapped object scaffolds
+      const schema = createTestSchema(`
+      type Query { authors: [Author!]! }
+      type Mutation { saveAuthor(input: AuthorInput!): Author! }
+      input AuthorInput { name: String }
+      type Author { name: String! }
+    `);
+      // And an existing test without its corresponding resolver
+      const testPath = `src/resolvers/${modulePath}.test.ts`;
+      const existingTest = "// Application-owned test";
+
+      // When scaffolding creates the resolver
+      const files = await runPlugin(
+        schema,
+        { mappers: { Author: "src/models#AuthorRoot" } },
+        { [testPath]: existingTest },
+      );
+
+      // Then the existing test is preserved
+      expect(files[testPath]).toEqual(existingTest);
+    },
+  );
 });

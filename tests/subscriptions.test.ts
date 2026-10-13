@@ -31,11 +31,20 @@ describe("Subscription resolver scaffolding", () => {
     expect(formatFilesForSnapshot(files)).toMatchInlineSnapshot(`
      "File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -48,11 +57,20 @@ describe("Subscription resolver scaffolding", () => {
 
      File: src/resolvers/objects/bookResolvers.test.ts
      =======================================================
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("bookResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(bookResolvers);
+     const runField = makeRunObjectField(bookResolvers);
 
 
      File: src/resolvers/objects/bookResolvers.ts
@@ -75,19 +93,19 @@ describe("Subscription resolver scaffolding", () => {
 
      File: src/resolvers/queries/dummyQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { dummy } from "src/resolvers/queries/dummyQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("dummy", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runDummy(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => dummy.dummy({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(dummy);
 
 
      File: src/resolvers/queries/dummyQuery.ts

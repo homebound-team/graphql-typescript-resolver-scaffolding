@@ -56,12 +56,60 @@ Todo: Think about where `extend type OtherObject` things go, when both in `schem
 
 The plugin only generates scaffolds for objects that are mapped types.
 
-* `scaffolding.ignoreObjectsPattern` will ignore certain objects that are mapped types, but you don't want scaffolded
+- `scaffolding.ignoreObjectsPattern` will ignore certain objects that are mapped types, but you don't want scaffolded
+- `resolversPath` sets the scaffold output directory and resolver imports (default: `src/resolvers`).
+- `graphqlTypesPath` sets the generated GraphQL types module (default: `src/generated/graphql-types`).
+- `testUtilsPath` sets the test helper module (default: `src/resolvers/testUtils`).
+- `contextType` sets the context mapper used by mutation fallback and subscription runners (default: `src/context#Context`). Helper-based tests infer the context from the helpers and resolver types.
+- `emitLegacyCommonJSImports` defaults to `true`, emitting extensionless imports. Set it to `false` to emit `.js` import extensions for ESM.
+
+For Node.js subpath imports, escape the leading `#` in configuration paths, e.g. `"\\#src/testUtils"` or `"\\#src/context#AppContext"`.
+
+## Generated Tests and Consumer Requirements
+
+New query, mutation, and object tests use a context-aware test interface and an explicitly unfinished business-case placeholder:
+
+```typescript
+describe("saveAuthor", () => {
+  it.withCtx("handles this business case", async (ctx) => {
+    // Given ...
+    // When ...
+    // Then ...
+    fail();
+  });
+});
+
+const runMutation = makeRunInputMutation(saveAuthor);
+```
+
+Configure your test setup to provide and type `it.withCtx(name, async (ctx) => { ... })`. It must supply your application's resolver context. The placeholder also assumes a global `fail()` that fails the test; replace it with meaningful test logic when implementing the business case.
+
+The module configured by `testUtilsPath` must export these factories for the scaffold types you generate:
+
+| Scaffold                                         | Required exports                            | Generated declarations (below `describe`)                                                                             |
+| ------------------------------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Mutation with exactly one argument named `input` | `makeRunInputMutation`                      | `const runMutation = makeRunInputMutation(saveAuthor);`                                                               |
+| Query, with or without arguments                 | `makeRunQuery`                              | `const runQuery = makeRunQuery(authors);`                                                                             |
+| Mapped object                                    | `makeRunObjectFields`, `makeRunObjectField` | `const runFields = makeRunObjectFields(authorResolvers);` and `const runField = makeRunObjectField(authorResolvers);` |
+
+Each factory receives the **resolver object**, not an individual resolver method. Use helpers compatible with Joist's helper-based test interface, or provide equivalent application-owned helpers that infer context, argument, root, and result types from these objects. The plugin supplies imports and declarations, not helper implementations or test setup. It has no ORM dependency and object tests do not import mapped root types, entity factories, or `entityResolver`.
+
+The input helper is used for a single argument named `input`, including nullable, scalar, and list inputs. Mutations with other argument shapes retain a wrapper using the configured context, GraphQL types, and `run` helper. For example, `deleteAuthor(id: ID!)` generates:
+
+```typescript
+function runMutation(ctx: Context, argsFn: () => MutationDeleteAuthorArgs) {
+  return run(ctx, (ctx) => deleteAuthor.deleteAuthor({}, argsFn(), ctx, undefined!));
+}
+```
+
+Zero-argument mutations instead generate `runMutation(ctx: Context)` and pass `{}` as resolver arguments. Multiple-argument mutations pass the complete generated `Mutation<Field>Args` object, including any `input` argument.
+
+Export `run(ctx, callback)` from `testUtilsPath` if you generate fallback mutation or subscription tests. The callback receives the execution context. Subscriptions keep their subscribe-specific runner and existing test skeleton.
+
+Existing resolver and test files are preserved. These requirements apply to newly created tests; existing tests are not migrated. Barrel files continue to be regenerated.
 
 ## Assumptions
 
-- Your context type is named `Context` and in `src/context`
-- You have `@src/...` import alias setup
-- You have a `src/mutations/testUtils` module with a `run` method
-- You use the `FooInput`/`FooResult` pattern for mutations
+- Your configured import paths resolve in your application and test environment
+- Your test environment provides the helpers and context-aware interface described above
 - Your graphql files are in `./schema/*.graphql` files

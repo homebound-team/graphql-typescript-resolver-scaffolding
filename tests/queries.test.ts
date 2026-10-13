@@ -27,11 +27,20 @@ describe("Query resolver scaffolding", () => {
     expect(formatFilesForSnapshot(files)).toMatchInlineSnapshot(`
      "File: src/resolvers/objects/authorResolvers.test.ts
      =======================================================
+     import { authorResolvers } from "src/resolvers/objects/authorResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("authorResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(authorResolvers);
+     const runField = makeRunObjectField(authorResolvers);
 
 
      File: src/resolvers/objects/authorResolvers.ts
@@ -44,11 +53,20 @@ describe("Query resolver scaffolding", () => {
 
      File: src/resolvers/objects/bookResolvers.test.ts
      =======================================================
+     import { bookResolvers } from "src/resolvers/objects/bookResolvers";
+     import { makeRunObjectField, makeRunObjectFields } from "src/resolvers/testUtils";
+
      describe("bookResolvers", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
+
+     const runFields = makeRunObjectFields(bookResolvers);
+     const runField = makeRunObjectField(bookResolvers);
 
 
      File: src/resolvers/objects/bookResolvers.ts
@@ -71,20 +89,19 @@ describe("Query resolver scaffolding", () => {
 
      File: src/resolvers/queries/authorsQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
-     import type { QueryAuthorsArgs } from "src/generated/graphql-types";
      import { authors } from "src/resolvers/queries/authorsQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("authors", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runAuthors(ctx: Context, argsFn: () => QueryAuthorsArgs) {
-       return run(ctx, (ctx) => authors.authors({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(authors);
 
 
      File: src/resolvers/queries/authorsQuery.ts
@@ -100,19 +117,19 @@ describe("Query resolver scaffolding", () => {
 
      File: src/resolvers/queries/booksQuery.test.ts
      =======================================================
-     import type { Context } from "src/context";
      import { books } from "src/resolvers/queries/booksQuery";
-     import { run } from "src/resolvers/testUtils";
+     import { makeRunQuery } from "src/resolvers/testUtils";
 
      describe("books", () => {
-       it("handles this business case", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
          fail();
        });
      });
 
-     function runBooks(ctx: Context, argsFn: () => {}) {
-       return run(ctx, (ctx) => books.books({}, argsFn(), ctx, undefined!));
-     }
+     const runQuery = makeRunQuery(books);
 
 
      File: src/resolvers/queries/booksQuery.ts
@@ -180,5 +197,31 @@ describe("Query resolver scaffolding", () => {
     expect(files["src/resolvers/queries/booksQuery.ts"]).toBeDefined();
     expect(files["src/resolvers/queries/booksQuery.ts"]).toContain("books");
     expect(files["src/resolvers/queries/booksQuery.test.ts"]).toBeDefined();
+  });
+
+  it("uses the query helper with the complete resolver object", async () => {
+    // Given a query with multiple arguments
+    const schema = createTestSchema(`type Query { search(term: String!, limit: Int): String }`);
+
+    // When its test is scaffolded
+    const files = await runPlugin(schema);
+
+    // Then the helper replaces the context and args wrapper
+    expect(files["src/resolvers/queries/searchQuery.test.ts"]).toMatchInlineSnapshot(`
+     "import { search } from "src/resolvers/queries/searchQuery";
+     import { makeRunQuery } from "src/resolvers/testUtils";
+
+     describe("search", () => {
+       it.withCtx("handles this business case", async (ctx) => {
+         // Given ...
+         // When ...
+         // Then ...
+         fail();
+       });
+     });
+
+     const runQuery = makeRunQuery(search);
+     "
+    `);
   });
 });

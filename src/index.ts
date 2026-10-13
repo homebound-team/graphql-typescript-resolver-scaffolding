@@ -2,7 +2,7 @@ import { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import { parseMapper, isExternalMapperType } from "@graphql-codegen/visitor-plugin-common";
 import { pascalCase, camelCase } from "change-case";
 import { promises as fs } from "fs";
-import { GraphQLField, GraphQLInputObjectType, GraphQLNonNull, GraphQLObjectType } from "graphql";
+import { type GraphQLField, GraphQLObjectType } from "graphql";
 import { dirname, join, normalize, isAbsolute } from "path";
 import { code, Code, imp, Import } from "ts-poet";
 import type { RawConfig } from "@graphql-codegen/visitor-plugin-common";
@@ -29,6 +29,10 @@ interface PluginContext {
     SubscriptionResolvers: Import;
     Context: Import;
     run: Import;
+    makeRunInputMutation: Import;
+    makeRunQuery: Import;
+    makeRunObjectFields: Import;
+    makeRunObjectField: Import;
   };
 }
 
@@ -68,6 +72,12 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
       }),
       Context: toImp(contextType, { typeName: "Context", isTypeOnlyImport: true }),
       run: toImp(buildSpec(testUtilsPath, "run"), { typeName: "run" }),
+      makeRunInputMutation: toImp(buildSpec(testUtilsPath, "makeRunInputMutation"), {
+        typeName: "makeRunInputMutation",
+      }),
+      makeRunQuery: toImp(buildSpec(testUtilsPath, "makeRunQuery"), { typeName: "makeRunQuery" }),
+      makeRunObjectFields: toImp(buildSpec(testUtilsPath, "makeRunObjectFields"), { typeName: "makeRunObjectFields" }),
+      makeRunObjectField: toImp(buildSpec(testUtilsPath, "makeRunObjectField"), { typeName: "makeRunObjectField" }),
     },
   };
 
@@ -121,23 +131,14 @@ export const plugin: PluginFunction<Config> = async (schema, documents, config) 
 /** Given the `Query` types, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObjectType): Promise<Import[]> {
   const {
-    graphqlTypesPath,
     resolversPath,
-    imports: { QueryResolvers, Context, run },
+    imports: { QueryResolvers, makeRunQuery },
   } = ctx;
   const cwd = await fs.realpath(".");
 
   // Loop over every `Query.foo` field
   const promises = Object.values(query.getFields()).map(async (field) => {
     const name = field.name;
-
-    const argsImp =
-      field.args.length === 0
-        ? "{}"
-        : toImp(buildSpec(graphqlTypesPath, `Query${pascalCase(name)}Args`), {
-            typeName: `Query${pascalCase(name)}Args`,
-            isTypeOnlyImport: true,
-          });
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
     const modulePath = join(unescapePath(resolversPath), maybeSubDir ?? "queries", `${name}Query`);
@@ -160,14 +161,15 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
         `${normalizePath(modulePath)}.test.ts`,
         code`
           describe("${name}", () => {
-            it("handles this business case", () => {
+            it.withCtx("handles this business case", async (ctx) => {
+              // Given ...
+              // When ...
+              // Then ...
               fail();
             });
           });
 
-          function run${pascalCase(name)}(ctx: ${Context}, argsFn: () => ${argsImp}) {
-            return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, argsFn(), ctx, undefined!));
-          }
+          const runQuery = ${makeRunQuery}(${resolverConst});
         `,
       );
     }
@@ -181,24 +183,13 @@ async function generateQueryScaffolding(ctx: PluginContext, query: GraphQLObject
 /** Given the `Mutation` type, generates `foo.ts` and `foo.test.ts` scaffolds for each field. */
 async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQLObjectType): Promise<Import[]> {
   const {
-    graphqlTypesPath,
     resolversPath,
-    imports: { MutationResolvers, Context, run },
+    imports: { MutationResolvers },
   } = ctx;
   const cwd = await fs.realpath(".");
 
   const promises = Object.values(mutation.getFields()).map(async (field) => {
     const name = field.name;
-
-    // Look for the `input: ...Input!` convention
-    const inputType = getInputType(field);
-    // if no inputType then make inputImp void
-    const inputImp = inputType
-      ? toImp(buildSpec(graphqlTypesPath, inputType.name), {
-          typeName: inputType.name,
-          isTypeOnlyImport: true,
-        })
-      : "void";
 
     const maybeSubDir = maybeGetSchemaFile(cwd, field);
     const modulePath = join(unescapePath(resolversPath), maybeSubDir ?? "mutations", `${name}Mutation`);
@@ -217,19 +208,21 @@ async function generateMutationScaffolding(ctx: PluginContext, mutation: GraphQL
     );
 
     if (newFile) {
+      const runner = mutationTestRunner(ctx, field, resolverConst);
       await writeIfNew(
         ctx,
         `${normalizePath(modulePath)}.test.ts`,
         code`
         describe("${name}", () => {
-          it("handles this business case", () => {
+          it.withCtx("handles this business case", async (ctx) => {
+            // Given ...
+            // When ...
+            // Then ...
             fail();
           });
         });
 
-        function run${pascalCase(name)}(ctx: ${Context}, inputFn: () => ${inputImp}) {
-          return ${run}(ctx, (ctx) => ${resolverConst}.${name}({}, { input: inputFn() }, ctx, undefined!));
-        }
+        ${runner}
       `,
       );
     }
@@ -354,10 +347,16 @@ async function generateObjectScaffolding(ctx: PluginContext, object: GraphQLObje
       `${normalizePath(modulePath)}.test.ts`,
       code`
         describe("${name}Resolvers", () => {
-          it("handles this business case", () => {
+          it.withCtx("handles this business case", async (ctx) => {
+            // Given ...
+            // When ...
+            // Then ...
             fail();
           });
         });
+
+        const runFields = ${ctx.imports.makeRunObjectFields}(${resolverConst});
+        const runField = ${ctx.imports.makeRunObjectField}(${resolverConst});
       `,
     );
   }
@@ -404,18 +403,6 @@ async function writeObjectBarrelFile(
   const fullPath = join(normalizePath(resolversPath), filePath);
   await fs.mkdir(dirname(fullPath), { recursive: true });
   await fs.writeFile(fullPath, contents.toString({ path: filePath, ...tsPoetConfig }));
-}
-
-/** Assumes the mutation has a single `Input`-style parameter, which should be non-null. */
-function getInputType(field: GraphQLField<any, any>): GraphQLInputObjectType | undefined {
-  if (field.args.length > 0) {
-    if (field.args[0].type instanceof GraphQLNonNull) {
-      return field.args[0].type.ofType as any as GraphQLInputObjectType;
-    } else if (field.args[0].type instanceof GraphQLInputObjectType) {
-      return field.args[0].type;
-    }
-  }
-  return undefined;
 }
 
 type HasAst = GraphQLObjectType | GraphQLField<any, any>;
@@ -636,6 +623,37 @@ function unescapePath(path: string): string {
  */
 function buildSpec(path: string, exportName: string): string {
   return `${path}#${exportName}`;
+}
+
+/**
+ * Uses the input helper only when it can supply the mutation's complete argument shape.
+ *
+ * Other mutations need a wrapper that passes all declared arguments without renaming them to input.
+ */
+function mutationTestRunner(ctx: PluginContext, field: GraphQLField<unknown, unknown>, resolverConst: Import): Code {
+  const { Context, run, makeRunInputMutation } = ctx.imports;
+
+  // A single input can be nullable, scalar, or a list; the helper infers its type from the resolver.
+  if (field.args.length === 1 && field.args[0].name === "input") {
+    return code`const runMutation = ${makeRunInputMutation}(${resolverConst});`;
+  }
+
+  // No-argument mutations must receive {}, not an artificial { input: undefined }.
+  if (field.args.length === 0) {
+    return code`
+      function runMutation(ctx: ${Context}) {
+        return ${run}(ctx, (ctx) => ${resolverConst}.${field.name}({}, {}, ctx, undefined!));
+      }
+    `;
+  }
+
+  const argsName = `Mutation${pascalCase(field.name)}Args`;
+  const argsImp = toImp(buildSpec(ctx.graphqlTypesPath, argsName), { typeName: argsName, isTypeOnlyImport: true });
+  return code`
+    function runMutation(ctx: ${Context}, argsFn: () => ${argsImp}) {
+      return ${run}(ctx, (ctx) => ${resolverConst}.${field.name}({}, argsFn(), ctx, undefined!));
+    }
+  `;
 }
 
 /**
